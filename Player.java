@@ -15,6 +15,8 @@ public class Player {
                                             {+1, +1}, {+1, +0}, {+1, -1}, {+1, -2},
                                             {+1, -2}, {+0, -2}, {-1, -2}, {-2, -2}, 
                                             {-2, -2}, {-2, -1}, {-2, +0}, {-2, +1}};
+    private final int[][] FILL_COORDINATES = {{0, 0}, {Game.SCREEN_WIDTH, 0}, {Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT}, {0, Game.SCREEN_HEIGHT}};
+    private final int[][] FILL_ORDER = {{1, 0, 3}, {0, 3, 2}, {3, 2, 1}, {2, 1, 0}};
 
     // Constructor
     public Player(int x, int y, int facing) {
@@ -75,34 +77,25 @@ public class Player {
         }
 
 
-        // Player
-        // Center of the screen
-        g.setColor(Color.BLACK);
-        g.fillRect(Game.SCREEN_WIDTH/2-2, Game.SCREEN_HEIGHT/2-2, 4, 4);
-        g.setColor(Color.WHITE);
-        g.fillRect(Game.SCREEN_WIDTH/2-1, Game.SCREEN_HEIGHT/2-1, 2, 2);
-
-        // Red dot to indicate facing of player
-        g.setColor(Color.RED);
-        g.fillRect(Game.SCREEN_WIDTH/2 + CORE_FACE[facing/90][0], Game.SCREEN_HEIGHT/2 + CORE_FACE[facing/90][1], 1, 1);
-        g.fillRect(Game.SCREEN_WIDTH/2 + PERIPHERY_FACE[(int) (facing/22.5)][0], Game.SCREEN_HEIGHT/2 + PERIPHERY_FACE[(int) (facing/22.5)][1], 1, 1);
 
         // Shadows
-        g.setColor(Color.BLACK);
+        g.setColor(Color.GRAY);
         // Right and left boundary of shadow
-        int angleRight = -facing - 106 + 90, angleLeft = -facing - 360 + 106 + 90;
+        int angleRight = -facing - 106 + 90, angleLeft = -facing + 106 + 90;
         // System.out.println("angleRight: " + angleRight + " | " + "angleLeft: " + angleLeft);
         // Sine and cosine of these angles used to calculculate slope of line
         double sin[] = {Math.sin(Math.toRadians(angleRight)), Math.sin(Math.toRadians(angleLeft))};
         double cos[] = {Math.cos(Math.toRadians(angleRight)), Math.cos(Math.toRadians(angleLeft))};
         // System.out.println(Arrays.toString(sin) + " | " + Arrays.toString(cos));
 
+        int endpoints[][] = new int[2][2];
         // For each of the two shadow boundaries
         for (int i = 0; i < 2; i++) {
             // Q1
+            int tmpx, tmpy;
             if (sin[i] > 0 && cos[i] > 0) {
                 // Start point
-                int tmpx = 2, tmpy = 2;
+                tmpx = 2; tmpy = 2;
                 // Continue drawing the line so long as it's within boundaries of the image
                 while (tmpx+Game.SCREEN_WIDTH/2 < Game.SCREEN_WIDTH && tmpy + Game.SCREEN_HEIGHT/2 < Game.SCREEN_HEIGHT) {
                     // This is based on the fact that tan(θ) = slope
@@ -118,7 +111,7 @@ public class Player {
             }
             // Q2
             else if (sin[i] > 0 && cos[i] < 0) {
-                int tmpx = -2, tmpy = 2;
+                tmpx = -2; tmpy = 2;
                 while (tmpx+Game.SCREEN_WIDTH/2 > 0 && tmpy + Game.SCREEN_HEIGHT/2 < Game.SCREEN_HEIGHT) {
                     while (tmpx+Game.SCREEN_WIDTH/2 > 0 && Math.abs(1.0*tmpy/tmpx) > Math.abs(sin[i]/cos[i])) {
                         g.fillRect(Game.SCREEN_WIDTH/2 + tmpx - 1, Game.SCREEN_HEIGHT/2 + tmpy, 1, 1);
@@ -130,7 +123,7 @@ public class Player {
             }
             // Q3
             else if (sin[i] < 0 && cos[i] < 0) {
-                int tmpx = -2, tmpy = -2;
+                tmpx = -2; tmpy = -2;
                 while (tmpx + Game.SCREEN_WIDTH/2 > 0 && tmpy + Game.SCREEN_HEIGHT/2 > 0) {
                     while (tmpx + Game.SCREEN_WIDTH/2 > 0 && Math.abs(1.0*tmpy/tmpx) > Math.abs(sin[i]/cos[i])) {
                         g.fillRect(Game.SCREEN_WIDTH/2 + tmpx - 1, Game.SCREEN_HEIGHT/2 + tmpy - 1, 1, 1);
@@ -141,8 +134,9 @@ public class Player {
                 }
             }
             // Q4
-            else if (sin[i] < 0 && cos[i] > 0) {
-                int tmpx = +2, tmpy = -2;
+            else {
+            // else if (sin[i] < 0 && cos[i] > 0) {
+                tmpx = +2; tmpy = -2;
                 while (tmpx + Game.SCREEN_WIDTH/2 < Game.SCREEN_WIDTH && tmpy + Game.SCREEN_HEIGHT/2 > 0) {
                     while (tmpx + Game.SCREEN_WIDTH/2 < Game.SCREEN_WIDTH && Math.abs(1.0*tmpy/tmpx) > Math.abs(sin[i]/cos[i])) {
                         g.fillRect(Game.SCREEN_WIDTH/2 + tmpx, Game.SCREEN_HEIGHT/2 + tmpy -1, 1, 1);
@@ -152,8 +146,33 @@ public class Player {
                     tmpy--;
                 }
             }
+            endpoints[i][0] = Game.SCREEN_WIDTH/2 + tmpx;
+            endpoints[i][1] = Game.SCREEN_HEIGHT/2 + tmpy;
         }
+        int dirIndex = facing/90;
+        g.fillPolygon(new int[]{Game.SCREEN_WIDTH/2, endpoints[0][0], 
+                                FILL_COORDINATES[FILL_ORDER[dirIndex][0]][0],
+                                FILL_COORDINATES[FILL_ORDER[dirIndex][1]][0],
+                                FILL_COORDINATES[FILL_ORDER[dirIndex][2]][0],
+                                endpoints[1][0]}, 
+                      new int[]{Game.SCREEN_HEIGHT/2, endpoints[0][1], 
+                                FILL_COORDINATES[FILL_ORDER[dirIndex][0]][1],
+                                FILL_COORDINATES[FILL_ORDER[dirIndex][1]][1],
+                                FILL_COORDINATES[FILL_ORDER[dirIndex][2]][1],
+                                endpoints[1][1]}, 
+            6);
 
+        // Player
+        // Center of the screen
+        g.setColor(Color.BLACK);
+        g.fillRect(Game.SCREEN_WIDTH/2-2, Game.SCREEN_HEIGHT/2-2, 4, 4);
+        g.setColor(Color.WHITE);
+        g.fillRect(Game.SCREEN_WIDTH/2-1, Game.SCREEN_HEIGHT/2-1, 2, 2);
+
+        // Red dot to indicate facing of player
+        g.setColor(Color.RED);
+        g.fillRect(Game.SCREEN_WIDTH/2 + CORE_FACE[facing/90][0], Game.SCREEN_HEIGHT/2 + CORE_FACE[facing/90][1], 1, 1);
+        g.fillRect(Game.SCREEN_WIDTH/2 + PERIPHERY_FACE[(int) (facing/22.5)][0], Game.SCREEN_HEIGHT/2 + PERIPHERY_FACE[(int) (facing/22.5)][1], 1, 1);
 //
 //         
 //

@@ -5,8 +5,9 @@ import java.awt.*;
 
 public abstract class Level {
 
-     int levelNum;
-     int[][] grid;
+    int levelNum;
+    int[][] grid;
+    Map<
 
     public Level(int levelNum, int[][] grid) {
         this.levelNum = levelNum;
