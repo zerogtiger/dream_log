@@ -82,13 +82,14 @@ public class Game extends Canvas implements Runnable {
         }
         Graphics g = bs.getDrawGraphics();
         Graphics gi = image.createGraphics();
+        gi.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
         gi.setColor(Color.WHITE);
         gi.setColor(Color.WHITE);
         gi.fillRect(0, 0, 1, 1);
         gi.setColor(Color.RED);
         gi.fillRect(SCREEN_WIDTH-1, SCREEN_HEIGHT-1, 1, 1);
         player.render(gi);
-        gi.setColor(Color.RED);
+        // gi.setColor(Color.RED);
         // gi.fillPolygon(new int[]{50, 20, 30}, new int[]{40, 60, 10}, 3);
         // gi.fillRect(162, 92, 3, 3);
 

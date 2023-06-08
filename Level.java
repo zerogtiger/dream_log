@@ -7,15 +7,19 @@ public abstract class Level {
 
     int levelNum;
     int[][] grid;
-    Map<
+    Map<Pair, int[]> update;
+    long timeElapsedms;
 
-    public Level(int levelNum, int[][] grid) {
+    public Level(int levelNum) {
         this.levelNum = levelNum;
-        this.grid = grid;
+        update = new HashMap<>();
+        timeElapsedms = 0;
     }
 
     public int getLevelNum() {
         return levelNum;
     }
+
+    public abstract void update();
 
 }
