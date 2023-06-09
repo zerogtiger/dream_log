@@ -15,7 +15,7 @@ public class Camera {
 
     */
     private double zoom;
-    private int centerx, centery, topy, leftx, bottomy, rightx;
+    private double centerx, centery, topy, leftx, bottomy, rightx;
     private Player player;
     
     // Constructor
@@ -40,10 +40,32 @@ public class Camera {
 
     public void render(Graphics g) {
         
+        
     }
 
+    // Getters
     public double getZoom() {
         return zoom;
+    }
+
+    public double getCenterX() {
+        return centerx;
+    }
+
+    public double getTopY() {
+        return topy;
+    }
+
+    public double getLeftX() {
+        return leftx;
+    }
+
+    public double getBottomY() {
+        return bottomy;
+    }
+
+    public double getRightX() {
+        return rightx;
     }
 
     public void setZoom(double zoom) {

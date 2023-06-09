@@ -1,5 +1,3 @@
-// Finals don't need getters?
-//
 
 import javax.sound.sampled.*;
 import javax.swing.*;
@@ -29,6 +27,10 @@ public class Game extends Canvas implements Runnable {
     public static boolean warptime;
 
     public static Player player;
+    public static Camera camera;
+    public static Level[] level;
+    // Current level player is on. 0 for main lobby
+    public static int currentLevel;
 
     public Game() {
 
@@ -36,6 +38,10 @@ public class Game extends Canvas implements Runnable {
 
         // Game component related initialization
         player = new Player(0, 0, 1);
+        camera = new Camera(20);
+        level = new Level[2];
+        level[0] = new Lobby();
+        currentLevel = 0;
 
         // Window related initializations
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
@@ -84,10 +90,12 @@ public class Game extends Canvas implements Runnable {
         Graphics gi = image.createGraphics();
         gi.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
         gi.setColor(Color.WHITE);
-        gi.setColor(Color.WHITE);
+        gi.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
         gi.fillRect(0, 0, 1, 1);
         gi.setColor(Color.RED);
         gi.fillRect(SCREEN_WIDTH-1, SCREEN_HEIGHT-1, 1, 1);
+        // gi.setColor(Color.gray);
+        // gi.fillRect(SCREEN_WIDTH/2-2, SCREEN_HEIGHT/2-2, 8, 8);
         player.render(gi);
         // gi.setColor(Color.RED);
         // gi.fillPolygon(new int[]{50, 20, 30}, new int[]{40, 60, 10}, 3);
@@ -112,7 +120,7 @@ public class Game extends Canvas implements Runnable {
             {
                 //handles all of the logic restricted time
                 // screen.update(camera, pixels);
-                // camera.update(map);
+                camera.update();
                 player.update();
                 delta--;
             }

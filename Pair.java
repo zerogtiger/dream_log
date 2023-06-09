@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class Pair implements Comparaable<Pair> {
+public class Pair implements Comparable<Pair> {
     public int f, s;
     
     public Pair(int f, int s) {
