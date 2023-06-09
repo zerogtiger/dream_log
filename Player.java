@@ -44,6 +44,12 @@ public class Player {
         {1, 1}, 
         {1, 0}
     };
+    private final Pair[] initialPoints = {
+        new Pair(1, 1), 
+        new Pair(-1, 1), 
+        new Pair(-1, -1), 
+        new Pair(1, -1)
+    };
     private final HashSet<Integer> xEdgeValues = new HashSet<>(Arrays.asList(-Game.SCREEN_WIDTH/2, Game.SCREEN_WIDTH/2));
     private final HashSet<Integer> yEdgeValues = new HashSet<>(Arrays.asList(-Game.SCREEN_HEIGHT/2, Game.SCREEN_HEIGHT/2));
 
@@ -52,12 +58,14 @@ public class Player {
 
     // Constructor
     public Player(int x, int y, int facing) {
+        // Initialize player location / orientation variables
         this.x = x;
         this.y = y;
         this.facing = facing;
 
+        // Rate of travel and rate of rotation
         speed = 0.125;
-        turnSpeed = 2;
+        turnSpeed = 10;
 
         // Initialize noise texture
         for (int i = 0; i < Game.SCREEN_WIDTH; i++) {
@@ -66,10 +74,12 @@ public class Player {
             }
         }
 
+        // Initialize mask
         mask = new BufferedImage(Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT, BufferedImage.TYPE_INT_RGB);
     }
 
     public void update() {
+        // Perform the needed actions if requested
         if (Game.forward)
             y += speed;
         else if (Game.backward)
@@ -83,6 +93,7 @@ public class Player {
         else if (Game.turnLeft)
             facing -= turnSpeed;
 
+        // Update facing value such that it is always in the range [0, 360)
         facing = (facing%360 + 360)%360;
 
         // Randomly switch two horizontal columns and two vertical columns
@@ -102,37 +113,13 @@ public class Player {
 
     // Render methods
     public void render(Graphics g) {
+        // Get and clear graphics object for image mask
+        Graphics gi = mask.createGraphics();
+        gi.clearRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
 
-        renderPlayerShadow(g);
-        renderPlayer(g);
+        // Draw shadow casted by player
+        renderPlayerShadow(gi);
 
-        // For all objects in range; calculate the shadow
-        // Pair xRange = new Pair(
-        //     Math.max(
-        //         0,
-        //         (int) Math.floor(x-Game.SCREEN_WIDTH/8/2)
-        //     ),
-        //     Math.min(
-        //         Game.level[Game.currentLevel].getXLength(),
-        //         (int) Math.ceil(x+Game.SCREEN_WIDTH/8/2)
-        //     )
-        // );
-        // Pair yRange = new Pair(
-        //     Math.max(
-        //         0,
-        //         (int) Math.floor(y-Game.SCREEN_HEIGHT/8/2)
-        //     ), 
-        //     Math.min(
-        //         Game.level[Game.currentLevel].getYLength(),
-        //         (int) Math.ceil(y+Game.SCREEN_HEIGHT/8/2)
-        //     )
-        // );
-        // for (int i = xRange.f; i < xRange.s; i++) {
-        //     for (int j = yRange.f; j < yRange.s; j++) {
-        //         renderObjectShadow(g, i, j);
-        //     }
-        // }
-        // For all objects in range; calculate the shadow
         Pair xRange = new Pair(
             Math.max(
                 0,
@@ -155,42 +142,26 @@ public class Player {
         );
         for (int i = xRange.f; i < xRange.s; i++) {
             for (int j = yRange.f; j < yRange.s; j++) {
-                renderObjectShadow(g, i, j);
+                renderObjectShadow(gi, i, j);
             }
         }
-
-
-
-        // for (int i = 0; i < Game.SCREEN_WIDTH; i++) {
-        //     for (int j = 0; j < Game.SCREEN_HEIGHT; j++) {
-        //         g.setColor(noise[i][j]);
-        //         g.fillRect(i, j, 1, 1);
-        //     }
-        // }
-//
-//         // If the is perfectly horizontal or perfectly vertical
-//         if (Math.abs(facing%90) == 0) {
-//             
-//         }
-//
-//
-//         System.out.println(Math.toRadians((90-(facing + 75))%90));
-//         double slopeRight = Math.tan(Math.toRadians((90-(facing + 75))));
-//         if (Double.isNaN(slopeRight)) return;
-//         System.out.println(facing);
-//         // int tmpx = Game.SCREEN_WIDTH/2, tmpy = Game.SCREEN_HEIGHT/2;
-// // BUG IS HERE LAA
-//         // if (facing  )
-//         int tmpx = 1, tmpy = 0;
-//         while (tmpx+Game.SCREEN_WIDTH/2 < Game.SCREEN_WIDTH && tmpy + Game.SCREEN_HEIGHT/2 < Game.SCREEN_HEIGHT) {
-//             while (1.0*tmpy/tmpx > slopeRight) {
-//                 tmpx++k;
-//                 g.fillRect(Game.SCREEN_WIDTH/2 + tmpx, Game.SCREEN_HEIGHT/2 + tmpy, 1, 1);
-//             }
-//             tmpy++;
-//             g.fillRect(Game.SCREEN_WIDTH/2 + tmpx, Game.SCREEN_HEIGHT/2 + tmpy, 1, 1);
-//         }
-
+        // Use mask to draw the noise onto the image
+        for (int i = 0; i < Game.SCREEN_WIDTH; i++) {
+            for (int j = 0; j < Game.SCREEN_HEIGHT; j++) {
+                int red = (mask.getRGB(i, j) & 0x00ff0000) >> 16;
+                int green = (mask.getRGB(i, j) & 0x0000ff00) >> 8;
+                int blue = (mask.getRGB(i, j) & 0x000000ff);
+                // System.out.println(red);
+                // System.out.println(green);
+                // System.out.println(blue);
+                if (red == 1 && green == 1 && blue == 1) {
+                    g.setColor(noise[i][j]);
+                    g.fillRect(i, j, 1, 1);
+                }
+            }
+        }
+        // Draw player spite
+        renderPlayer(g);
     }
 
     private void renderPlayerShadow(Graphics g) {
@@ -210,66 +181,35 @@ public class Player {
         int endpoints[][] = new int[2][2];
         // For each of the two shadow boundaries
         for (int i = 0; i < 2; i++) {
-            // Q1
-            int tmpx, tmpy;
-            if (sin[i] > 0 && cos[i] > 0) {
-                // Start point
-                tmpx = 2; tmpy = 2;
-                // Continue drawing the line so long as it's within boundaries of the mask
-                while (tmpx+Game.SCREEN_WIDTH/2 < Game.SCREEN_WIDTH && tmpy + Game.SCREEN_HEIGHT/2 < Game.SCREEN_HEIGHT) {
-                    // This is based on the fact that tan(θ) = slope
-                    // Move in the x-direction to fit to the slope
-                    while (tmpx+Game.SCREEN_WIDTH/2 < Game.SCREEN_WIDTH && 1.0*tmpy/tmpx > sin[i]/cos[i]) {
-                        gi.fillRect(Game.SCREEN_WIDTH/2 + tmpx, Game.SCREEN_HEIGHT/2 + tmpy, 1, 1);
-                        tmpx++;
-                    }
-                    // rhen increment in the y-direction
-                    gi.fillRect(Game.SCREEN_WIDTH/2 + tmpx, Game.SCREEN_HEIGHT/2 + tmpy, 1, 1);
-                    tmpy++;
+            // Based on the value of sine and cosine, determine which quadrant it is to be drawn
+            int quadrant = Arrays.asList(initialPoints).indexOf(new Pair((int) (cos[i]/Math.abs(cos[i])), (int) (sin[i]/Math.abs(sin[i]))));
+            // System.out.println(quadrant);
+            // Start point
+            endpoints[i][0] = initialPoints[quadrant].f;
+            endpoints[i][1] = initialPoints[quadrant].s;
+            // Continue drawing the line so long as it's within boundaries of the mask
+            while (endpoints[i][0] + Game.SCREEN_WIDTH/2 > 0 && endpoints[i][0] + Game.SCREEN_WIDTH/2 < Game.SCREEN_WIDTH
+                    && endpoints[i][1] + Game.SCREEN_HEIGHT/2 > 0 && endpoints[i][1] + Game.SCREEN_HEIGHT/2 < Game.SCREEN_HEIGHT) {
+                // This is based on the fact that tan(θ) = slope
+                // Move in the x-direction to fit to the slope if larger than target value
+                if (Math.abs(1.0*endpoints[i][1]/endpoints[i][0]) > Math.abs(sin[i]/cos[i])) {
+                    endpoints[i][0] += initialPoints[quadrant].f;
                 }
-            }
-            // Q2
-            else if (sin[i] > 0 && cos[i] < 0) {
-                tmpx = -2; tmpy = 2;
-                while (tmpx+Game.SCREEN_WIDTH/2 > 0 && tmpy + Game.SCREEN_HEIGHT/2 < Game.SCREEN_HEIGHT) {
-                    while (tmpx+Game.SCREEN_WIDTH/2 > 0 && Math.abs(1.0*tmpy/tmpx) > Math.abs(sin[i]/cos[i])) {
-                        gi.fillRect(Game.SCREEN_WIDTH/2 + tmpx - 1, Game.SCREEN_HEIGHT/2 + tmpy, 1, 1);
-                        tmpx--;
-                    }
-                    gi.fillRect(Game.SCREEN_WIDTH/2 + tmpx - 1, Game.SCREEN_HEIGHT/2 + tmpy, 1, 1);
-                    tmpy++;
+                // Otherwise, increment in the y-direction
+                else {
+                    endpoints[i][1] += initialPoints[quadrant].s;
                 }
+                gi.fillRect(Game.SCREEN_WIDTH/2 + endpoints[i][0] - initialPoints[quadrant].s, Game.SCREEN_HEIGHT/2 + endpoints[i][1] - initialPoints[quadrant].f, 1, 1);
             }
-            // Q3
-            else if (sin[i] < 0 && cos[i] < 0) {
-                tmpx = -2; tmpy = -2;
-                while (tmpx + Game.SCREEN_WIDTH/2 > 0 && tmpy + Game.SCREEN_HEIGHT/2 > 0) {
-                    while (tmpx + Game.SCREEN_WIDTH/2 > 0 && Math.abs(1.0*tmpy/tmpx) > Math.abs(sin[i]/cos[i])) {
-                        gi.fillRect(Game.SCREEN_WIDTH/2 + tmpx - 1, Game.SCREEN_HEIGHT/2 + tmpy - 1, 1, 1);
-                        tmpx--;
-                    }
-                    gi.fillRect(Game.SCREEN_WIDTH/2 + tmpx -1, Game.SCREEN_HEIGHT/2 + tmpy - 1, 1, 1);
-                    tmpy--;
-                }
-            }
-            // Q4
-            else {
-            // else if (sin[i] < 0 && cos[i] > 0) 
-                tmpx = +2; tmpy = -2;
-                while (tmpx + Game.SCREEN_WIDTH/2 < Game.SCREEN_WIDTH && tmpy + Game.SCREEN_HEIGHT/2 > 0) {
-                    while (tmpx + Game.SCREEN_WIDTH/2 < Game.SCREEN_WIDTH && Math.abs(1.0*tmpy/tmpx) > Math.abs(sin[i]/cos[i])) {
-                        gi.fillRect(Game.SCREEN_WIDTH/2 + tmpx, Game.SCREEN_HEIGHT/2 + tmpy -1, 1, 1);
-                        tmpx++;
-                    }
-                    gi.fillRect(Game.SCREEN_WIDTH/2 + tmpx, Game.SCREEN_HEIGHT/2 + tmpy - 1, 1, 1);
-                    tmpy--;
-                }
-            }
-            endpoints[i][0] = Game.SCREEN_WIDTH/2 + tmpx;
-            endpoints[i][1] = Game.SCREEN_HEIGHT/2 + tmpy;
+            // Turn local coords to coords based on the screen
+            endpoints[i][0] += Game.SCREEN_WIDTH/2;
+            endpoints[i][1] += Game.SCREEN_HEIGHT/2;
         }
+        // Used to get 
         int dirIndex = facing/90;
-        gi.setColor(new Color(255, 0, 0));
+        // Set to the special color for the mask
+        gi.setColor(new Color(1, 1, 1));
+        // Draw the polygon defining the shadow cast by player
         gi.fillPolygon(new int[]{Game.SCREEN_WIDTH/2, endpoints[0][0], 
                                 FILL_COORDINATES[FILL_ORDER[dirIndex][0]][0],
                                 FILL_COORDINATES[FILL_ORDER[dirIndex][1]][0],
@@ -280,21 +220,9 @@ public class Player {
                                 FILL_COORDINATES[FILL_ORDER[dirIndex][1]][1],
                                 FILL_COORDINATES[FILL_ORDER[dirIndex][2]][1],
                                 endpoints[1][1]}, 6);
-        // Draw the noise onto the actual mask
-        for (int i = 0; i < Game.SCREEN_WIDTH; i++) {
-            for (int j = 0; j < Game.SCREEN_HEIGHT; j++) {
-                int intensity = (mask.getRGB(i, j) & 0x00ff0000) >> 16;
-                if (intensity == 255) {
-                    g.setColor(noise[i][j]);
-                    g.fillRect(i, j, 1, 1);
-                }
-            }
-        }
     }
 
     private void renderObjectShadow(Graphics g, int cellX, int cellY) {
-        Graphics gi = mask.createGraphics();
-        gi.clearRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
         if (Game.level[Game.currentLevel].getGrid(cellX, cellY) > 0) {
             int endpoints[][] = new int[4][2];
             double slope;
@@ -309,116 +237,80 @@ public class Player {
                 }
                 else {
                     slope = (cellY + vertexDelta[v][1] - y) / (cellX + vertexDelta[v][0] - x);
-                    // Q1
-                    if (cellY + vertexDelta[v][1] - y  > 0 && cellX + vertexDelta[v][0] - x > 0) {
-                        endpoints[v][0] = 1;
-                        endpoints[v][1] = 1;
-                        while (endpoints[v][0] + Game.SCREEN_WIDTH/2 < Game.SCREEN_WIDTH && endpoints[v][1] + Game.SCREEN_HEIGHT/2 < Game.SCREEN_HEIGHT) {
-                            if (Math.abs(1.0 * endpoints[v][1] / endpoints[v][0]) > Math.abs(slope)) {
-                                endpoints[v][0] ++;
-                            }
-                            else {
-                                endpoints[v][1] ++;
-                            }
+                    // Get Quadrant
+                    // Based on the the change in x and y, determine which quadrant it is to be drawn
+                    int quadrant = Arrays.asList(initialPoints).indexOf(new Pair((int) ((cellX + vertexDelta[v][0] - x)/Math.abs(cellX + vertexDelta[v][0] - x)),
+                                                                            (int) ((cellY + vertexDelta[v][1] - y)/Math.abs(cellY + vertexDelta[v][1] - y))));
+                    // System.out.println(quadrant);
+                    // Start point
+                    endpoints[v][0] = initialPoints[quadrant].f;
+                    endpoints[v][1] = initialPoints[quadrant].s;
+                    while (endpoints[v][0] + Game.SCREEN_WIDTH/2 > 0 && endpoints[v][0] + Game.SCREEN_WIDTH/2 < Game.SCREEN_WIDTH 
+                            && endpoints[v][1] + Game.SCREEN_HEIGHT/2 > 0 && endpoints[v][1] + Game.SCREEN_HEIGHT/2 < Game.SCREEN_HEIGHT) {
+                        // This is based on the fact that tan(θ) = slope
+                        // Move in the x-direction to fit to the slope if larger than target value
+                        if (Math.abs(1.0 * endpoints[v][1] / endpoints[v][0]) > Math.abs(slope)) {
+                            endpoints[v][0] += initialPoints[quadrant].f;
                         }
-                    }
-                    // Q2
-                    else if (cellY + vertexDelta[v][1] - y > 0 && cellX + vertexDelta[v][0] - x < 0) {
-                        endpoints[v][0] = -1;
-                        endpoints[v][1] = 1;
-                        while (endpoints[v][0] + Game.SCREEN_WIDTH/2 > 0 && endpoints[v][1] + Game.SCREEN_HEIGHT/2 < Game.SCREEN_HEIGHT) {
-                            if (Math.abs(1.0 * endpoints[v][1] / endpoints[v][0]) > Math.abs(slope)) {
-                                endpoints[v][0] --;
-                            }
-                            else {
-                                endpoints[v][1] ++;
-                            }
-                        }
-                    }
-                    // Q3
-                    else if (cellY + vertexDelta[v][1] - y < 0 && cellX + vertexDelta[v][0] - x < 0) {
-                        endpoints[v][0] = -1;
-                        endpoints[v][1] = -1;
-                        while (endpoints[v][0] + Game.SCREEN_WIDTH/2 > 0 && endpoints[v][1] + Game.SCREEN_HEIGHT/2 > 0) {
-                            if (Math.abs(1.0 * endpoints[v][1] / endpoints[v][0]) > Math.abs(slope)) {
-                                endpoints[v][0] --;
-                            }
-                            else {
-                                endpoints[v][1] --;
-                            }
-                        }
-                    }
-                    // Q4
-                    else {
-                        endpoints[v][0] = 1;
-                        endpoints[v][1] = -1;
-                        while (endpoints[v][0] + Game.SCREEN_WIDTH/2 < Game.SCREEN_WIDTH && endpoints[v][1] + Game.SCREEN_HEIGHT/2 > 0) {
-                            if (Math.abs(1.0 * endpoints[v][1] / endpoints[v][0]) > Math.abs(slope)) {
-                                endpoints[v][0] ++;
-                            }
-                            else {
-                                endpoints[v][1] --;
-                            }
+                        // Otherwise, increment in the y-direction
+                        else {
+                            endpoints[v][1] += initialPoints[quadrant].s;
                         }
                     }
                 }
             }
-            g.setColor(Color.BLACK);
+            g.setColor(new Color(1, 1, 1));
             for (int v = 0; v < 4; v++) {
+                int[] xPoints, yPoints;
                 if ((endpoints[v%4][0] == endpoints[(v+1)%4][0] && xEdgeValues.contains(endpoints[v%4][0] - Game.SCREEN_WIDTH/2)) || (endpoints[v%4][1] == endpoints[(v+1)%4][1] && yEdgeValues.contains(endpoints[v%4][1] - Game.SCREEN_HEIGHT/2))) {
-                    g.drawPolygon(
-                        new int[]{
-                            (int) (-x*8) + Game.SCREEN_WIDTH/2 + (cellX + vertexDelta[v][0])*8,
-                            (int) Game.SCREEN_WIDTH/2 + endpoints[v][0],
-                            (int) Game.SCREEN_WIDTH/2 + endpoints[(v+1)%4][0],
-                            (int) (-x*8) + Game.SCREEN_WIDTH/2 + (cellX + vertexDelta[(v+1)%4][0])*8
-                        }, 
-                        new int[]{
-                            (int) (-y*8) + Game.SCREEN_HEIGHT/2 + (cellY + vertexDelta[v][1])*8,
-                            (int) Game.SCREEN_HEIGHT/2 + endpoints[v][1],
-                            (int) Game.SCREEN_HEIGHT/2 + endpoints[(v+1)%4][1],
-                            (int) (-y*8) + Game.SCREEN_HEIGHT/2 + (cellY + vertexDelta[(v+1)%4][1])*8
-                        },
-                    4);
+                    xPoints = new int[]{
+                        (int) (-x*8) + Game.SCREEN_WIDTH/2 + (cellX + vertexDelta[v][0])*8,
+                        (int) Game.SCREEN_WIDTH/2 + endpoints[v][0],
+                        (int) Game.SCREEN_WIDTH/2 + endpoints[(v+1)%4][0],
+                        (int) (-x*8) + Game.SCREEN_WIDTH/2 + (cellX + vertexDelta[(v+1)%4][0])*8
+                    }; 
+                    yPoints = new int[]{
+                        (int) (-y*8) + Game.SCREEN_HEIGHT/2 + (cellY + vertexDelta[v][1])*8,
+                        (int) Game.SCREEN_HEIGHT/2 + endpoints[v][1],
+                        (int) Game.SCREEN_HEIGHT/2 + endpoints[(v+1)%4][1],
+                        (int) (-y*8) + Game.SCREEN_HEIGHT/2 + (cellY + vertexDelta[(v+1)%4][1])*8
+                    };
                 }
                 else if ((xEdgeValues.contains(endpoints[v%4][0]) && xEdgeValues.contains(endpoints[(v+1)%4][0]) && endpoints[v%4][0] != endpoints[(v+1)%4][0]) || (yEdgeValues.contains(endpoints[v%4][1]) && yEdgeValues.contains(endpoints[(v+1)%4][1]) && endpoints[v%4][1] != endpoints[(v+1)%4][1])) {
-                    g.drawPolygon(
-                        new int[]{
-                            (int) (-x*8) + Game.SCREEN_WIDTH/2 + (cellX + vertexDelta[v][0])*8,
-                            (int) Game.SCREEN_WIDTH/2 + endpoints[v][0],
-                            (int) Game.SCREEN_WIDTH/2 + (xEdgeValues.contains(endpoints[v%4][0])? endpoints[v%4][0] : (endpoints[v%4][0] < 0? -Game.SCREEN_WIDTH/2 : Game.SCREEN_WIDTH/2)),
-                            (int) Game.SCREEN_WIDTH/2 + (xEdgeValues.contains(endpoints[(v+1)%4][0])? endpoints[(v+1)%4][0] : (endpoints[(v+1)%4][0] < 0? -Game.SCREEN_WIDTH/2 : Game.SCREEN_WIDTH/2)),
-                            (int) Game.SCREEN_WIDTH/2 + endpoints[(v+1)%4][0],
-                            (int) (-x*8) + Game.SCREEN_WIDTH/2 + (cellX + vertexDelta[(v+1)%4][0])*8
-                        }, 
-                        new int[]{
-                            (int) (-y*8) + Game.SCREEN_HEIGHT/2 + (cellY + vertexDelta[v][1])*8,
-                            (int) Game.SCREEN_HEIGHT/2 + endpoints[v][1],
-                            (int) Game.SCREEN_HEIGHT/2 + (yEdgeValues.contains(endpoints[v%4][1])? endpoints[v%4][1] : (endpoints[v%4][1] < 0? -Game.SCREEN_HEIGHT/2 : Game.SCREEN_HEIGHT/2)),
-                            (int) Game.SCREEN_HEIGHT/2 + (yEdgeValues.contains(endpoints[(v+1)%4][1])? endpoints[(v+1)%4][1] : (endpoints[(v+1)%4][1] < 0? -Game.SCREEN_HEIGHT/2 : Game.SCREEN_HEIGHT/2)),
-                            (int) Game.SCREEN_HEIGHT/2 + endpoints[(v+1)%4][1],
-                            (int) (-y*8) + Game.SCREEN_HEIGHT/2 + (cellY + vertexDelta[(v+1)%4][1])*8
-                        },
-                    6);
+                    xPoints = new int[]{
+                        (int) (-x*8) + Game.SCREEN_WIDTH/2 + (cellX + vertexDelta[v][0])*8,
+                        (int) Game.SCREEN_WIDTH/2 + endpoints[v][0],
+                        (int) Game.SCREEN_WIDTH/2 + (xEdgeValues.contains(endpoints[v%4][0])? endpoints[v%4][0] : (endpoints[v%4][0] < 0? -Game.SCREEN_WIDTH/2 : Game.SCREEN_WIDTH/2)),
+                        (int) Game.SCREEN_WIDTH/2 + (xEdgeValues.contains(endpoints[(v+1)%4][0])? endpoints[(v+1)%4][0] : (endpoints[(v+1)%4][0] < 0? -Game.SCREEN_WIDTH/2 : Game.SCREEN_WIDTH/2)),
+                        (int) Game.SCREEN_WIDTH/2 + endpoints[(v+1)%4][0],
+                        (int) (-x*8) + Game.SCREEN_WIDTH/2 + (cellX + vertexDelta[(v+1)%4][0])*8
+                    }; 
+                    yPoints = new int[]{
+                        (int) (-y*8) + Game.SCREEN_HEIGHT/2 + (cellY + vertexDelta[v][1])*8,
+                        (int) Game.SCREEN_HEIGHT/2 + endpoints[v][1],
+                        (int) Game.SCREEN_HEIGHT/2 + (yEdgeValues.contains(endpoints[v%4][1])? endpoints[v%4][1] : (endpoints[v%4][1] < 0? -Game.SCREEN_HEIGHT/2 : Game.SCREEN_HEIGHT/2)),
+                        (int) Game.SCREEN_HEIGHT/2 + (yEdgeValues.contains(endpoints[(v+1)%4][1])? endpoints[(v+1)%4][1] : (endpoints[(v+1)%4][1] < 0? -Game.SCREEN_HEIGHT/2 : Game.SCREEN_HEIGHT/2)),
+                        (int) Game.SCREEN_HEIGHT/2 + endpoints[(v+1)%4][1],
+                        (int) (-y*8) + Game.SCREEN_HEIGHT/2 + (cellY + vertexDelta[(v+1)%4][1])*8
+                    };
                 }
                 else {
-                    g.drawPolygon(
-                        new int[]{
-                            (int) (-x*8) + Game.SCREEN_WIDTH/2 + (cellX + vertexDelta[v][0])*8,
-                            (int) Game.SCREEN_WIDTH/2 + endpoints[v][0],
-                            (int) Game.SCREEN_WIDTH/2 + (xEdgeValues.contains(endpoints[v][0])? endpoints[v][0] : endpoints[(v+1)%4][0]),
-                            (int) Game.SCREEN_WIDTH/2 + endpoints[(v+1)%4][0],
-                            (int) (-x*8) + Game.SCREEN_WIDTH/2 + (cellX + vertexDelta[(v+1)%4][0])*8
-                        }, 
-                        new int[]{
-                            (int) (-y*8) + Game.SCREEN_HEIGHT/2 + (cellY + vertexDelta[v][1])*8,
-                            (int) Game.SCREEN_HEIGHT/2 + endpoints[v][1],
-                            (int) Game.SCREEN_HEIGHT/2 + (yEdgeValues.contains(endpoints[v][1])? endpoints[v][1] : endpoints[(v+1)%4][1]),
-                            (int) Game.SCREEN_HEIGHT/2 + endpoints[(v+1)%4][1],
-                            (int) (-y*8) + Game.SCREEN_HEIGHT/2 + (cellY + vertexDelta[(v+1)%4][1])*8
-                        },
-                    5);
+                    xPoints = new int[]{
+                        (int) (-x*8) + Game.SCREEN_WIDTH/2 + (cellX + vertexDelta[v][0])*8,
+                        (int) Game.SCREEN_WIDTH/2 + endpoints[v][0],
+                        (int) Game.SCREEN_WIDTH/2 + (xEdgeValues.contains(endpoints[v][0])? endpoints[v][0] : endpoints[(v+1)%4][0]),
+                        (int) Game.SCREEN_WIDTH/2 + endpoints[(v+1)%4][0],
+                        (int) (-x*8) + Game.SCREEN_WIDTH/2 + (cellX + vertexDelta[(v+1)%4][0])*8
+                    };
+                    yPoints = new int[]{
+                        (int) (-y*8) + Game.SCREEN_HEIGHT/2 + (cellY + vertexDelta[v][1])*8,
+                        (int) Game.SCREEN_HEIGHT/2 + endpoints[v][1],
+                        (int) Game.SCREEN_HEIGHT/2 + (yEdgeValues.contains(endpoints[v][1])? endpoints[v][1] : endpoints[(v+1)%4][1]),
+                        (int) Game.SCREEN_HEIGHT/2 + endpoints[(v+1)%4][1],
+                        (int) (-y*8) + Game.SCREEN_HEIGHT/2 + (cellY + vertexDelta[(v+1)%4][1])*8
+                    };
                 }
+                g.fillPolygon(xPoints, yPoints, xPoints.length);
             }
             // for (int v = 0; v < 4; v++) {
             //     if (endpoints[v%4][0] == endpoints[(v+1)%4][0] || endpoints[v%4][1] == endpoints[(v+1)%4][1]) {
@@ -457,16 +349,6 @@ public class Player {
             //     }
             // }
         }
-        // Draw the noise onto the actual mask
-        // for (int i = 0; i < Game.SCREEN_WIDTH; i++) {
-        //     for (int j = 0; j < Game.SCREEN_HEIGHT; j++) {
-        //         int intensity = (mask.getRGB(i, j) & 0x00ff0000) >> 16;
-        //         if (intensity == 255) {
-        //             g.setColor(noise[i][j]);
-        //             g.fillRect(i, j, 1, 1);
-        //         }
-        //     }
-        // }
     }
 
 
