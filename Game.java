@@ -37,7 +37,7 @@ public class Game extends Canvas implements Runnable {
         warptime = false;
 
         // Game component related initialization
-        player = new Player(0, 0, 1);
+        player = new Player(1.5, 1.5, 1);
         camera = new Camera(20);
         level = new Level[2];
         level[0] = new Lobby();

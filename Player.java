@@ -8,6 +8,7 @@ public class Player {
     // Current player coords (from center); facing: degrees from north (+y)
     private int facing;
     private double x, y;
+    private boolean blockLeft, blockRight, blockFront, blockBack;
 
     // Rate of travel and rate of rotation
     private final int turnSpeed;
@@ -58,11 +59,15 @@ public class Player {
     private BufferedImage mask;
 
     // Constructor
-    public Player(int x, int y, int facing) {
+    public Player(double x, double y, int facing) {
         // Initialize player location / orientation variables
         this.x = x;
         this.y = y;
         this.facing = facing;
+        this.blockLeft = false;
+        this.blockRight = false;
+        this.blockFront = false;
+        this.blockBack = false;
 
         // Rate of travel and rate of rotation
         speed = 0.125;
@@ -80,14 +85,20 @@ public class Player {
     }
 
     public void update() {
+        
+        blockLeft = Game.level[Game.currentLevel].getGrid((int) x-1, (int) y) > 0 && (x - (int) x <= 0.25);
+        blockRight = Game.level[Game.currentLevel].getGrid((int) x+1, (int) y) > 0 && (x - (int) x >= 0.75);
+        blockFront = Game.level[Game.currentLevel].getGrid((int) x, (int) y+1) > 0 && (y - (int) y >= 0.75);
+        blockBack = Game.level[Game.currentLevel].getGrid((int) x, (int) y-1) > 0 && (y - (int) y <= 0.25);
+
         // Perform the needed actions if requested
-        if (Game.forward)
+        if (Game.forward && !blockFront)
             y += speed;
-        else if (Game.backward)
+        else if (Game.backward && !blockBack)
             y -= speed;
-        if (Game.left)
+        if (Game.left && !blockLeft)
             x -= speed;
-        else if (Game.right)
+        else if (Game.right && !blockRight)
             x += speed;
         if (Game.turnRight)
             facing += turnSpeed;
@@ -311,7 +322,7 @@ public class Player {
                         (int) (-y*8) + Game.SCREEN_HEIGHT/2 + (cellY + vertexDelta[(v+1)%4][1])*8
                     };
                 }
-                g.fillPolygon(xPoints, yPoints, xPoints.length);
+                g.drawPolygon(xPoints, yPoints, xPoints.length);
             }
             // for (int v = 0; v < 4; v++) {
             //     if (endpoints[v%4][0] == endpoints[(v+1)%4][0] || endpoints[v%4][1] == endpoints[(v+1)%4][1]) {

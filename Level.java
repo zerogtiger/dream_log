@@ -41,7 +41,7 @@ public abstract class Level {
             br = new BufferedReader(new FileReader(updateFile));
             while ((line = br.readLine()) != null && !line.equals("")) {
                 tmpUpdateEntry = line.split(" ");
-                System.out.println(Arrays.toString(tmpUpdateEntry));
+                // System.out.println(Arrays.toString(tmpUpdateEntry));
                 update.put(new Pair(Integer.parseInt(tmpUpdateEntry[0]), Integer.parseInt(tmpUpdateEntry[1])), new int[]{Integer.parseInt(tmpUpdateEntry[2]), Integer.parseInt(tmpUpdateEntry[3])});
             }
             br.close();
