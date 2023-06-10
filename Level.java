@@ -12,27 +12,37 @@ public abstract class Level {
     private Map<Pair, int[]> update;
     private long timeElapsedms;
 
-    public Level(int levelNum, String gridFile, int shiftx, int shifty) {
+    public Level(int levelNum, String gridFile, String updateFile, int shiftx, int shifty) {
         this.levelNum = levelNum;
         update = new HashMap<>();
         timeElapsedms = 0;
 
-        // Read in grid info
+        // Read in grid info such that the grid coordinate system has (0, 0) at the bottom left corner
         try {
             BufferedReader br = new BufferedReader(new FileReader(gridFile));
             yLength = 1;
             xLength = br.readLine().length();
-            while (br.readLine() != null)
-            yLength++;
+            String line;
+            while ((line = br.readLine()) != null && !line.equals(""))
+                yLength++;
             grid = new int[xLength+0][yLength+0];
             br.close();
             br = new BufferedReader(new FileReader(gridFile));
-            String line;
             for (int y = yLength-1; y >= 0; y--) {
                 line = br.readLine();
                 for (int x = 0; x < xLength; x++) {
                     grid[x][y] = Integer.parseInt(line.charAt(x) + "");
                 }
+            }
+            br.close();
+            
+            // Teleportation info
+            String[] tmpUpdateEntry;
+            br = new BufferedReader(new FileReader(updateFile));
+            while ((line = br.readLine()) != null && !line.equals("")) {
+                tmpUpdateEntry = line.split(" ");
+                System.out.println(Arrays.toString(tmpUpdateEntry));
+                update.put(new Pair(Integer.parseInt(tmpUpdateEntry[0]), Integer.parseInt(tmpUpdateEntry[1])), new int[]{Integer.parseInt(tmpUpdateEntry[2]), Integer.parseInt(tmpUpdateEntry[3])});
             }
             br.close();
         }
@@ -65,6 +75,11 @@ public abstract class Level {
         return yLength;
     }
 
-    public abstract void update();
-
+    public void update() {
+        double playerx = Game.player.getX(), playery = Game.player.getY();
+        if (update.containsKey(new Pair((int) playerx, (int) playery))) {
+            Game.player.setX(playerx - (int) playerx + update.get(new Pair((int) playerx, (int) playery))[0]);
+            Game.player.setY(playery - (int) playery + update.get(new Pair((int) playerx, (int) playery))[1]);
+        }
+    }
 }

@@ -8,7 +8,8 @@ public class Player {
     // Current player coords (from center); facing: degrees from north (+y)
     private int facing;
     private double x, y;
-    // 
+
+    // Rate of travel and rate of rotation
     private final int turnSpeed;
     private final double speed;
 
@@ -210,7 +211,7 @@ public class Player {
         // Set to the special color for the mask
         gi.setColor(new Color(1, 1, 1));
         // Draw the polygon defining the shadow cast by player
-        gi.fillPolygon(new int[]{Game.SCREEN_WIDTH/2, endpoints[0][0], 
+        gi.drawPolygon(new int[]{Game.SCREEN_WIDTH/2, endpoints[0][0], 
                                 FILL_COORDINATES[FILL_ORDER[dirIndex][0]][0],
                                 FILL_COORDINATES[FILL_ORDER[dirIndex][1]][0],
                                 FILL_COORDINATES[FILL_ORDER[dirIndex][2]][0],

@@ -122,6 +122,7 @@ public class Game extends Canvas implements Runnable {
                 // screen.update(camera, pixels);
                 camera.update();
                 player.update();
+                level[currentLevel].update();
                 delta--;
             }
             render();//displays to the screen unrestricted time
