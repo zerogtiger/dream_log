@@ -120,9 +120,9 @@ public class Game extends Canvas implements Runnable {
             {
                 //handles all of the logic restricted time
                 // screen.update(camera, pixels);
+                level[currentLevel].update();
                 camera.update();
                 player.update();
-                level[currentLevel].update();
                 delta--;
             }
             render();//displays to the screen unrestricted time

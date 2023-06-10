@@ -85,26 +85,57 @@ public class Player {
     }
 
     public void update() {
+
+        // System.out.println(x + " | " + y);
         
-        blockLeft = Game.level[Game.currentLevel].getGrid((int) x-1, (int) y) > 0 && (x - (int) x <= 0.25);
-        blockRight = Game.level[Game.currentLevel].getGrid((int) x+1, (int) y) > 0 && (x - (int) x >= 0.75);
-        blockFront = Game.level[Game.currentLevel].getGrid((int) x, (int) y+1) > 0 && (y - (int) y >= 0.75);
-        blockBack = Game.level[Game.currentLevel].getGrid((int) x, (int) y-1) > 0 && (y - (int) y <= 0.25);
+        // Checking whether the player is blocked in any direction
+        // Each is adding a slight delta as the center of the player may be in one cell, but its bounding box may come into contact with an object in another cell; adding 0.125 here ----| to avoid false detection
+        blockLeft = (Game.level[Game.currentLevel].getGrid((int) (x-1), (int) (y-0.25)) > 0 && (x - (int) x <= 0.25)) || (Game.level[Game.currentLevel].getGrid((int) (x-1), (int) (y+0.125)) > 0 && (x - (int) x <= 0.25));
+        blockRight = (Game.level[Game.currentLevel].getGrid((int) x+1, (int) (y-0.25)) > 0 && (x - (int) x >= 0.75)) || (Game.level[Game.currentLevel].getGrid((int) x+1, (int) (y+0.125)) > 0 && (x - (int) x >= 0.75));
+        blockFront = (Game.level[Game.currentLevel].getGrid((int) (x-0.25), (int) y+1) > 0 && (y - (int) y >= 0.75)) || (Game.level[Game.currentLevel].getGrid((int) (x+0.125), (int) y+1) > 0 && (y - (int) y >= 0.75));
+        blockBack = (Game.level[Game.currentLevel].getGrid((int) (x-0.25), (int) y-1) > 0 && (y - (int) y <= 0.25)) || (Game.level[Game.currentLevel].getGrid((int) (x+0.125), (int) y-1) > 0 && (y - (int) y <= 0.25));
 
         // Perform the needed actions if requested
-        if (Game.forward && !blockFront)
-            y += speed;
-        else if (Game.backward && !blockBack)
-            y -= speed;
-        if (Game.left && !blockLeft)
-            x -= speed;
-        else if (Game.right && !blockRight)
-            x += speed;
+        if (Game.forward) {
+            if (blockFront) 
+                y = (int) y + 0.75;
+            else 
+                y += speed;
+        }
+        else if (Game.backward) {
+            if (blockBack) 
+                y = (int) y + 0.25;
+            else 
+                y -= speed;
+        }
+        if (Game.left) {
+            if (blockLeft) 
+                x = (int) x + 0.25;
+            else 
+                x -= speed;
+        }
+        else if (Game.right) {
+            if (blockRight) 
+                x = (int) x + 0.75;
+            else 
+                x += speed;
+        }
+        // if (Game.forward && !blockFront)
+        //     y += speed;
+        // else if (blockFront && y - (int) y > 0.75)
+        //     y = (int) y + 0.75;
+        // else if (Game.backward && !blockBack)
+        //     y -= speed;
+        // if (Game.left && !blockLeft)
+        //     x -= speed;
+        // else if (Game.right && !blockRight)
+        //     x += speed;
         if (Game.turnRight)
             facing += turnSpeed;
         else if (Game.turnLeft)
             facing -= turnSpeed;
 
+        // System.out.println(x + " | " + y + " | " + blockBack + " | " + blockLeft);
         // Update facing value such that it is always in the range [0, 360)
         facing = (facing%360 + 360)%360;
 
@@ -386,6 +417,10 @@ public class Player {
 
     public double getY() {
         return y;
+    }
+
+    public int getFacing() {
+        return facing;
     }
 
     // Setters
