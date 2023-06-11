@@ -9,6 +9,10 @@ public abstract class Level {
     private int levelNum, xLength, yLength;
     // Grid stores map data; One cell is 8 x 8 pixels
     private int[][] grid;
+    // Map with teleportation info
+    // Value of length 2: implicit teleportation in the same level (initial x, initial y, target x, target y)
+    // Value of length 3: explicit teleportation in the same level (initial x, initial y, required rotation, target x, target y)
+    // Value of length 4: explicit teleportation to different level (initial x, initial y, required rotation, target x, target y, target level)
     private Map<Pair, int[]> update;
     private long timeElapsedms;
 
@@ -19,13 +23,10 @@ public abstract class Level {
         new Pair(-1, 0)
     };
 
-    public Level(int levelNum, String gridFile, String updateFile, int shiftx, int shifty, double startX, double startY) {
+    public Level(int levelNum, String gridFile, String updateFile, int shiftx, int shifty) {
         this.levelNum = levelNum;
         update = new HashMap<>();
         timeElapsedms = 0;
-
-        Game.player.setX(startX);
-        Game.player.setY(startY);
 
         // Read in grid info such that the grid coordinate system has (0, 0) at the bottom left corner
         try {
@@ -57,6 +58,9 @@ public abstract class Level {
                 }
                 else if (tmpUpdateEntry.length == 5) {
                     update.put(new Pair(Integer.parseInt(tmpUpdateEntry[0]), Integer.parseInt(tmpUpdateEntry[1])), new int[]{Integer.parseInt(tmpUpdateEntry[2]), Integer.parseInt(tmpUpdateEntry[3]), Integer.parseInt(tmpUpdateEntry[4])});
+                }
+                else if (tmpUpdateEntry.length == 6) {
+                    update.put(new Pair(Integer.parseInt(tmpUpdateEntry[0]), Integer.parseInt(tmpUpdateEntry[1])), new int[]{Integer.parseInt(tmpUpdateEntry[2]), Integer.parseInt(tmpUpdateEntry[3]), Integer.parseInt(tmpUpdateEntry[4]), Integer.parseInt(tmpUpdateEntry[5])});
                 }
             }
             br.close();
@@ -104,10 +108,18 @@ public abstract class Level {
             // System.out.println(flag);
             // System.out.println(playerx);
             // System.out.println(portalCheck[quadrant].f * (playerx - (int) playerx - 0.5));
-            if (length == 3 && Math.abs((Game.player.getFacing() + 45)%360 - (value[0] + 45)%360) <= 25 && flag) {
+            if (length >= 3 && Math.abs((Game.player.getFacing() + 45)%360 - (value[0] + 45)%360) <= 25 && flag) {
                 Game.player.setX(playerx - (int) playerx + value[1]);
                 Game.player.setY(playery - (int) playery + value[2]);
+
+                if (length == 4) {
+                    Game.currentLevel = value[3];
+                }
             }
         }
+        refresh();
     }
+    public abstract void refresh();
+
+    
 }

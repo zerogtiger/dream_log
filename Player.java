@@ -253,7 +253,7 @@ public class Player {
         // Set to the special color for the mask
         gi.setColor(new Color(1, 1, 1));
         // Draw the polygon defining the shadow cast by player
-        gi.drawPolygon(new int[]{Game.SCREEN_WIDTH/2, endpoints[0][0], 
+        gi.fillPolygon(new int[]{Game.SCREEN_WIDTH/2, endpoints[0][0], 
                                 FILL_COORDINATES[FILL_ORDER[dirIndex][0]][0],
                                 FILL_COORDINATES[FILL_ORDER[dirIndex][1]][0],
                                 FILL_COORDINATES[FILL_ORDER[dirIndex][2]][0],
@@ -353,7 +353,7 @@ public class Player {
                         (int) (-y*8) + Game.SCREEN_HEIGHT/2 + (cellY + vertexDelta[(v+1)%4][1])*8
                     };
                 }
-                g.drawPolygon(xPoints, yPoints, xPoints.length);
+                g.fillPolygon(xPoints, yPoints, xPoints.length);
             }
             // for (int v = 0; v < 4; v++) {
             //     if (endpoints[v%4][0] == endpoints[(v+1)%4][0] || endpoints[v%4][1] == endpoints[(v+1)%4][1]) {
