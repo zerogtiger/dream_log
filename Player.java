@@ -55,8 +55,10 @@ public class Player {
     private final HashSet<Integer> xEdgeValues = new HashSet<>(Arrays.asList(-Game.SCREEN_WIDTH/2, Game.SCREEN_WIDTH/2));
     private final HashSet<Integer> yEdgeValues = new HashSet<>(Arrays.asList(-Game.SCREEN_HEIGHT/2, Game.SCREEN_HEIGHT/2));
 
+    private final Color[] MASK_CONSTANTS = {new Color(0, 0, 0), new Color(1, 1, 1), new Color(2, 2, 2), new Color(3, 3, 3)};
+
     // Helper mask for the noise
-    private BufferedImage mask;
+    private BufferedImage mask, mergeMask;
 
     // Constructor
     public Player(double x, double y, int facing) {
@@ -82,6 +84,7 @@ public class Player {
 
         // Initialize mask
         mask = new BufferedImage(Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT, BufferedImage.TYPE_INT_RGB);
+        mergeMask = new BufferedImage(Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT, BufferedImage.TYPE_INT_RGB);
     }
 
     public void update() {
@@ -154,6 +157,10 @@ public class Player {
         }
     }
 
+    public void mergeMask() {
+
+    }
+
     // Render methods
     public void render(Graphics g) {
         // Get and clear graphics object for image mask
@@ -194,11 +201,18 @@ public class Player {
                 int red = (mask.getRGB(i, j) & 0x00ff0000) >> 16;
                 int green = (mask.getRGB(i, j) & 0x0000ff00) >> 8;
                 int blue = (mask.getRGB(i, j) & 0x000000ff);
+                // System.out.println(mask.getRGB(i, j));
                 // System.out.println(red);
                 // System.out.println(green);
                 // System.out.println(blue);
                 if (red == 1 && green == 1 && blue == 1) {
                     g.setColor(noise[i][j]);
+                    g.fillRect(i, j, 1, 1);
+                }
+                else if (red == 2 && green == 2 && blue == 2) {
+                    // System.out.println("out");
+                    g.setColor(Color.RED);
+                    // g.setColor(new Color(noise[i][j].getRed(), noise[i][j].getGreen(), noise[i][j].getBlue(), 96));
                     g.fillRect(i, j, 1, 1);
                 }
             }
@@ -208,10 +222,10 @@ public class Player {
     }
 
     private void renderPlayerShadow(Graphics g) {
-        Graphics gi = mask.createGraphics();
-        gi.clearRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
+        // Graphics gi = mask.createGraphics();
+        // gi.clearRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
 
-        gi.setColor(new Color(254, 0, 0));
+        g.setColor(new Color(254, 0, 0));
         // Right and left boundary of shadow
         int angleRight = -facing - 106 + 90, angleLeft = -facing + 106 + 90;
         // System.out.println("angleRight: " + angleRight + " | " + "angleLeft: " + angleLeft);
@@ -242,7 +256,7 @@ public class Player {
                 else {
                     endpoints[i][1] += initialPoints[quadrant].s;
                 }
-                gi.fillRect(Game.SCREEN_WIDTH/2 + endpoints[i][0] - initialPoints[quadrant].s, Game.SCREEN_HEIGHT/2 + endpoints[i][1] - initialPoints[quadrant].f, 1, 1);
+                // gi.fillRect(Game.SCREEN_WIDTH/2 + endpoints[i][0] - initialPoints[quadrant].s, Game.SCREEN_HEIGHT/2 + endpoints[i][1] - initialPoints[quadrant].f, 1, 1);
             }
             // Turn local coords to coords based on the screen
             endpoints[i][0] += Game.SCREEN_WIDTH/2;
@@ -251,9 +265,9 @@ public class Player {
         // Used to get 
         int dirIndex = facing/90;
         // Set to the special color for the mask
-        gi.setColor(new Color(1, 1, 1));
+        g.setColor(new Color(1, 1, 1));
         // Draw the polygon defining the shadow cast by player
-        gi.fillPolygon(new int[]{Game.SCREEN_WIDTH/2, endpoints[0][0], 
+        g.fillPolygon(new int[]{Game.SCREEN_WIDTH/2, endpoints[0][0], 
                                 FILL_COORDINATES[FILL_ORDER[dirIndex][0]][0],
                                 FILL_COORDINATES[FILL_ORDER[dirIndex][1]][0],
                                 FILL_COORDINATES[FILL_ORDER[dirIndex][2]][0],
@@ -266,7 +280,11 @@ public class Player {
     }
 
     private void renderObjectShadow(Graphics g, int cellX, int cellY) {
-        if (Game.level[Game.currentLevel].getGrid(cellX, cellY) > 0) {
+        // if (Game.level[Game.currentLevel].getGrid(cellX, cellY) == 2) {
+        //     g.setColor(MASK_CONSTANTS[2]);
+        //     g.fillRect(cellX*8, cellY*8, 8, 8);
+        // }
+        if (Game.level[Game.currentLevel].getGrid(cellX, cellY) > 0 && Game.level[Game.currentLevel].getGrid(cellX, cellY) != 2) {
             int endpoints[][] = new int[4][2];
             double slope;
             for (int v =0; v < 4; v++) {
@@ -302,7 +320,8 @@ public class Player {
                     }
                 }
             }
-            g.setColor(new Color(1, 1, 1));
+            g.setColor(MASK_CONSTANTS[Game.level[Game.currentLevel].getGrid(cellX, cellY)]);
+            // g.setColor(new Color(2, 2, 2));
             for (int v = 0; v < 4; v++) {
                 int[] xPoints, yPoints;
                 if ((endpoints[v%4][0] == endpoints[(v+1)%4][0] && xEdgeValues.contains(endpoints[v%4][0] - Game.SCREEN_WIDTH/2)) || (endpoints[v%4][1] == endpoints[(v+1)%4][1] && yEdgeValues.contains(endpoints[v%4][1] - Game.SCREEN_HEIGHT/2))) {
