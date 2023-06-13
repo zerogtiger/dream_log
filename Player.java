@@ -1,3 +1,40 @@
+
+/* // Top teleportation window
+13 25 level 1
+39 25 level 1
+65 25 level 1
+91 25 level 5
+117 25 level 5
+143 25 level 5
+169 25 level 5
+195 25 level 1
+// Right teleportation window
+25 12 level 2
+51 12 level 2
+77 12 A
+103 12 A
+129 12 A
+155 12 A
+181 12 level 2
+207 12 level 2
+// Bottom window
+13 1 level 3
+39 1 B
+65 1 B
+91 1 B
+117 1 B
+143 1 level 3
+169 1 level 3
+195 1 level 3
+// Left window
+1 13 C
+27 13 C
+53 13 C
+79 13 C
+105 13 level 4
+131 13 level 4
+157 13 level 4
+183 13 level 4 */
 import javax.swing.*;
 import java.util.*;
 import java.io.*;
@@ -8,6 +45,7 @@ public class Player {
     // Current player coords (from center); facing: degrees from north (+y)
     private int facing;
     private double x, y;
+    private int prevx, prevy;
     private boolean blockLeft, blockRight, blockFront, blockBack;
 
     // Rate of travel and rate of rotation
@@ -66,6 +104,8 @@ public class Player {
         // Initialize player location / orientation variables
         this.x = x;
         this.y = y;
+        this.prevx = (int) x;
+        this.prevy = (int) y;
         this.facing = facing;
         this.blockLeft = false;
         this.blockRight = false;
@@ -91,6 +131,8 @@ public class Player {
     public void update() {
 
         // System.out.println(x + " | " + y);
+        int oldx = (int) x;
+        int oldy = (int) y;
         
         // Checking whether the player is blocked in any direction
         // Each is adding a slight delta as the center of the player may be in one cell, but its bounding box may come into contact with an object in another cell; adding 0.125 here ----| to avoid false detection
@@ -138,6 +180,12 @@ public class Player {
             facing += turnSpeed;
         else if (Game.turnLeft)
             facing -= turnSpeed;
+
+        if ((int) x != oldx || (int) y != oldy) {
+            prevx = oldx;
+            prevy = oldy;
+        }
+        // System.out.println(x + " | " + prevx);
 
         // System.out.println(x + " | " + y + " | " + blockBack + " | " + blockLeft);
         // Update facing value such that it is always in the range [0, 360)
@@ -288,7 +336,7 @@ public class Player {
         // Set to the special color for the mask
         g.setColor(new Color(1, 1, 1));
         // Draw the polygon defining the shadow cast by player
-        g.fillPolygon(new int[]{Game.SCREEN_WIDTH/2, endpoints[0][0], 
+        g.drawPolygon(new int[]{Game.SCREEN_WIDTH/2, endpoints[0][0], 
                                 FILL_COORDINATES[FILL_ORDER[dirIndex][0]][0],
                                 FILL_COORDINATES[FILL_ORDER[dirIndex][1]][0],
                                 FILL_COORDINATES[FILL_ORDER[dirIndex][2]][0],
@@ -392,7 +440,7 @@ public class Player {
                         (int) (-y*8) + Game.SCREEN_HEIGHT/2 + (cellY + vertexDelta[(v+1)%4][1])*8
                     };
                 }
-                g.fillPolygon(xPoints, yPoints, xPoints.length);
+                g.drawPolygon(xPoints, yPoints, xPoints.length);
             }
         }
     }
@@ -486,7 +534,7 @@ public class Player {
                         (int) (-y*8) + Game.SCREEN_HEIGHT/2 + (cellY + vertexDelta[(v+1)%4][1])*8
                     };
                 }
-                g.fillPolygon(xPoints, yPoints, xPoints.length);
+                g.drawPolygon(xPoints, yPoints, xPoints.length);
             }
             // for (int v = 0; v < 4; v++) {
             //     if (endpoints[v%4][0] == endpoints[(v+1)%4][0] || endpoints[v%4][1] == endpoints[(v+1)%4][1]) {
@@ -550,6 +598,14 @@ public class Player {
 
     public double getY() {
         return y;
+    }
+
+    public int getPrevX() {
+        return prevx;
+    }
+
+    public int getPrevY() {
+        return prevy;
     }
 
     public int getFacing() {

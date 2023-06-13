@@ -51,6 +51,8 @@ public abstract class Level {
             String[] tmpUpdateEntry;
             br = new BufferedReader(new FileReader(updateFile));
             while ((line = br.readLine()) != null && !line.equals("")) {
+                if (line.charAt(0) == '/')
+                    continue;
                 tmpUpdateEntry = line.split(" ");
                 // System.out.println(Arrays.toString(tmpUpdateEntry));
                 if (tmpUpdateEntry.length == 4) {
@@ -96,7 +98,10 @@ public abstract class Level {
 
     public void update() {
         double playerx = Game.player.getX(), playery = Game.player.getY();
-        if (update.containsKey(new Pair((int) playerx, (int) playery))) {
+        int prevx = Game.player.getPrevX(), prevy = Game.player.getPrevY();
+        // flag indicates whether the player came from an adjacent cell
+        boolean flag = ((prevx == (int) playerx-1 || prevx == (int) playerx + 1) && (prevy == (int) playery)) || ((prevy == (int) playery-1 || prevy == (int) playery + 1) && (prevx == (int) playerx));
+        if (update.containsKey(new Pair((int) playerx, (int) playery)) && flag) {
             int[] value = update.get(new Pair((int) playerx, (int) playery));
             int length = value.length;
             if (length == 2) {
@@ -104,7 +109,7 @@ public abstract class Level {
                 Game.player.setY(playery - (int) playery + value[1]);
             }
             int quadrant = value[0]/90;
-            boolean flag = portalCheck[quadrant].f * (playerx - (int) playerx - 0.5) >= 0 && portalCheck[quadrant].s * (playery - (int) playery - 0.5) >= 0;
+            flag = portalCheck[quadrant].f * (playerx - (int) playerx - 0.5) >= 0 && portalCheck[quadrant].s * (playery - (int) playery - 0.5) >= 0;
             // System.out.println(flag);
             // System.out.println(playerx);
             // System.out.println(portalCheck[quadrant].f * (playerx - (int) playerx - 0.5));
