@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.swing.text.html.HTMLDocument.HTMLReader.SpecialAction;
+
 import java.util.*;
 import java.io.*;
 import java.awt.*;
@@ -55,7 +57,10 @@ public abstract class Level {
                     continue;
                 tmpUpdateEntry = line.split(" ");
                 // System.out.println(Arrays.toString(tmpUpdateEntry));
-                if (tmpUpdateEntry.length == 4) {
+                if (tmpUpdateEntry.length == 3) {
+                    update.put(new Pair(Integer.parseInt(tmpUpdateEntry[0]), Integer.parseInt(tmpUpdateEntry[1])), new int[]{Integer.parseInt(tmpUpdateEntry[2])});
+                }
+                else if (tmpUpdateEntry.length == 4) {
                     update.put(new Pair(Integer.parseInt(tmpUpdateEntry[0]), Integer.parseInt(tmpUpdateEntry[1])), new int[]{Integer.parseInt(tmpUpdateEntry[2]), Integer.parseInt(tmpUpdateEntry[3])});
                 }
                 else if (tmpUpdateEntry.length == 5) {
@@ -104,7 +109,10 @@ public abstract class Level {
         if (update.containsKey(new Pair((int) playerx, (int) playery)) && flag) {
             int[] value = update.get(new Pair((int) playerx, (int) playery));
             int length = value.length;
-            if (length == 2) {
+            if (length == 1) {
+                specialFunctions(value[0]);
+            }
+            else if (length == 2) {
                 Game.player.setX(playerx - (int) playerx + value[0]);
                 Game.player.setY(playery - (int) playery + value[1]);
             }
@@ -124,6 +132,22 @@ public abstract class Level {
         }
         refresh();
     }
+
+    private void specialFunctions(int i) {
+        if (i == 1) {
+
+        }
+        else if (i == 2) {
+
+        }
+        else if (i == 3) {
+
+        }
+        else if (i == 4) {
+
+        }
+    }
+
     public abstract void refresh();
 
     

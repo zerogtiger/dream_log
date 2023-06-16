@@ -9,14 +9,14 @@
 169 25 level 5
 195 25 level 1
 // Right teleportation window
-25 12 level 2
-51 12 level 2
-77 12 A
-103 12 A
-129 12 A
-155 12 A
-181 12 level 2
-207 12 level 2
+25 13 level 2
+51 13 level 2
+77 13 A
+103 13 A
+129 13 A
+155 13 A
+181 13 level 2
+207 13 level 2
 // Bottom window
 13 1 level 3
 39 1 B

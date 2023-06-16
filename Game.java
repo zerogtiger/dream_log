@@ -39,9 +39,12 @@ public class Game extends Canvas implements Runnable {
         // Game component related initialization
         player = new Player(1.5, 1.5, 1);
         camera = new Camera(20);
-        level = new Level[2];
+        level = new Level[5];
         level[0] = new Lobby();
         level[1] = new Level1();
+        level[2] = new Level2();
+        level[3] = new Level3();
+        level[4] = new Level4();
         currentLevel = 0;
 
         // Window related initializations
