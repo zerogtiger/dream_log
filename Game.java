@@ -1,4 +1,5 @@
 
+import javax.print.attribute.standard.JobMessageFromOperator;
 import javax.sound.sampled.*;
 import javax.swing.*;
 import java.util.*;
@@ -27,10 +28,18 @@ public class Game extends Canvas implements Runnable {
     public static boolean warptime;
 
     public static Player player;
+    public static User user;
+    public static LinkedList<User> allUsers = new LinkedList<>();
     public static Camera camera;
     public static Level[] level;
     // Current level player is on. 0 for main lobby
     public static int currentLevel;
+
+    // Option dialogue components
+    private JPanel loginPanel, newAccountPanel, leaderboardPanel;
+    private JTextField loginField, passwordField, newAccountField, newPassword1Field, newPassword2Field;
+    private JLabel loginLabel, newAccountLabel;
+    private final String[] loginOptions = {"New Account", "Cancel", "Log In"}, newAccountOptions = {"Cancel", "Sign Up"};
 
     public Game() {
 
@@ -68,8 +77,218 @@ public class Game extends Canvas implements Runnable {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
         start();
+
+        // Option dialogue related initializationz
+        loginField = new JTextField(15);
+        passwordField = new JTextField(15);
+        newAccountField = new JTextField(15);
+        newPassword1Field = new JTextField(15);
+        newPassword2Field = new JTextField(15);
+
+        loginLabel = new JLabel("test");
+        loginLabel.setVisible(false);
+        newAccountLabel = new JLabel("test2");
+        newAccountLabel.setVisible(false);
+        
+        // Log in panel
+        loginPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.weightx = 1.0;
+        c.weighty = 1.0;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.gridwidth = 1;
+        loginPanel.add(new JLabel("Username: "), c);
+        c.gridx = 1;
+        c.gridwidth = 3;
+        loginPanel.add(loginField, c);
+        c.gridwidth = 1;
+        c.gridx = 0;
+        c.gridy = 1;
+        loginPanel.add(new JLabel("Password: "), c);
+        c.gridwidth = 3;
+        c.gridx = 1;
+        c.gridy = 1;
+        loginPanel.add(passwordField, c);
+        c.gridwidth = 2;
+        c.gridy = 2;
+        c.gridx = 1;
+        loginPanel.add(loginLabel, c);
+
+        newAccountPanel = new JPanel(new GridBagLayout());
+        c.weightx = 1.0;
+        c.weighty = 1.0;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.gridwidth = 1;
+        newAccountPanel.add(new JLabel("Username: "), c);
+        c.gridx = 1;
+        c.gridwidth = 3;
+        newAccountPanel.add(newAccountField, c);
+        c.gridwidth = 1;
+        c.gridx = 0;
+        c.gridy = 1;
+        newAccountPanel.add(new JLabel("Password: "), c);
+        c.gridwidth = 3;
+        c.gridx = 1;
+        c.gridy = 1;
+        newAccountPanel.add(newPassword1Field, c);
+        c.gridwidth = 1;
+        c.gridx = 0;
+        c.gridy = 2;
+        newAccountPanel.add(new JLabel("Confirm Password: "), c);
+        c.gridwidth = 3;
+        c.gridx = 1;
+        c.gridy = 2;
+        newAccountPanel.add(newPassword2Field, c);
+        c.gridwidth = 2;
+        c.gridx = 1;
+        c.gridy = 3;
+        newAccountPanel.add(newAccountLabel, c);
+
+        retriveAllUserInfo();
+
+        getUserInfo();
     }
 
+    private void retriveAllUserInfo() {
+        try {
+            BufferedReader br = new BufferedReader(new FileReader("user_data/login_info.txt"));
+            String line, tmpArray[];
+            while ((line = br.readLine()) != null) {
+                tmpArray = line.split(" ");
+                allUsers.add(new User(tmpArray[0], tmpArray[1], "user_data/user_info/" + tmpArray[0] + ".txt"));
+            }
+            Collections.sort(allUsers);
+            br.close();
+        }
+        catch (FileNotFoundException e) {
+            System.out.println(e);
+        }
+        catch (IOException e) {
+            System.out.println(e);
+        }
+    }
+
+
+    private void getUserInfo() {
+        int result;
+        // While the current user has not been detectedx
+        while (user == null) {
+            // Repeatedly ask user for input if user closes the dialogue box
+            passwordField.setText("");
+            do {
+                result = JOptionPane.showOptionDialog(null, loginPanel, "Log in", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, loginOptions, null);
+            } while (result == JOptionPane.CLOSED_OPTION);
+            // If user wish to create a new account
+            if (result == JOptionPane.YES_OPTION) {
+                // Reset the textfields
+                newAccountField.setText("");
+                newPassword1Field.setText("");
+                newPassword2Field.setText("");
+                newAccountLabel.setVisible(false);
+                boolean creatable = true;
+                do {
+                    // Get user input from dialogue box
+                    result = JOptionPane.showOptionDialog(null, newAccountPanel, "Log in", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, newAccountOptions, null);
+
+                    // If selected create new account
+                    if (result == JOptionPane.NO_OPTION) {
+                        // Whether passwords match
+                        creatable = newPassword1Field.getText().equals(newPassword2Field.getText());
+                        // Whether there already exists such a username
+                        creatable &= Collections.binarySearch(allUsers, new User(newAccountField.getText(), "")) < 0;
+                        // If username already exists, show message
+                        if (Collections.binarySearch(allUsers, new User(newAccountField.getText(), "")) >= 0) {
+                            newAccountLabel.setForeground(Color.RED);
+                            newAccountLabel.setText("<HTML>Duplicate username.<br> Please select an alternate username.</HTML>");
+                            newAccountLabel.setVisible(true);
+                        }
+                        // If passwords don't match, show message
+                        else if (!newPassword1Field.getText().equals(newPassword2Field.getText())) {
+                            newAccountLabel.setForeground(Color.RED);
+                            newAccountLabel.setText("<HTML>Password mismatch.<br> Please check both passwords match identically.</HTML>"); 
+                            newAccountLabel.setVisible(true);
+                        }
+                        // Otherwise, the account is creatable
+                        else {
+                            newAccountLabel.setVisible(false);
+                            // Create the new user
+                            user = new User(newAccountField.getText(), User.sha256hash(newPassword1Field.getText()));
+                            // Add to total list of users
+                            allUsers.add(user);
+                            // Append current user credentials to file
+                            try {
+                                // Append current user credentials
+                                PrintWriter pr = new PrintWriter(new FileWriter("user_data/login_info.txt", true));
+                                pr.println(user.getName() + " " + user.getPassword());
+                                pr.close();
+                            }
+                            catch (IOException e) {
+                                System.out.println(e);
+                            }
+                        }
+                    }
+                    // If selected cancel, revert back to previous menu
+                    else if (result == JOptionPane.YES_OPTION) {
+                        creatable = true;
+                    }
+                } while (result == JOptionPane.CLOSED_OPTION || !creatable);
+            }
+            // If selected cancel
+            else if (result == JOptionPane.NO_OPTION) {
+                stop();
+                System.exit(0);
+            }
+            // Otherwise, if the user selected to log in with credentials
+            else if (result == JOptionPane.CANCEL_OPTION) {
+                // Get username and password (sha-256 encoded)
+                String username = loginField.getText(), password = User.sha256hash(passwordField.getText());
+                int idx;
+                if ((idx = Collections.binarySearch(allUsers, new User(username, password), new CompareByNamePassword())) >= 0) {
+                    user = allUsers.get(idx);
+                    loginLabel.setVisible(false);
+                }
+                else {
+                    loginLabel.setForeground(Color.RED);
+                    loginLabel.setText("<HTML>Unrecorded username or password, please try again.<br> If you do not have an account, press the \'New Account\' button.</HTML>");
+                    loginLabel.setVisible(true);
+                    passwordField.setText("");
+                }
+            }
+        }
+        // Set player lobby position
+        player.setX(user.getLastLobbyX() + 0.5);
+        player.setY(user.getLastLobbyY() + 0.5);
+        player.setFacing(user.getLastFacing());
+    }
+
+    public static void recordUserInfo() {
+        // User account record sequence
+        try {
+            // Create user file
+            PrintWriter pr = new PrintWriter(new FileWriter("user_data/user_info/" + user.getName() + ".txt"));
+            pr.println(player.getFacing());
+            pr.println(Game.player.getPrevX() + " " + Game.player.getPrevY());
+            pr.println(user.getLastLevel());
+            pr.println(user.getLastLevelX() + " " + user.getLastLevelY());
+            for (Integer i : user.getLevelsCleared()) {
+                pr.print(" " + i);
+            }
+            pr.println(" ");
+            pr.println(user.getTimeElapsedSeconds());
+            pr.println(user.getMenuMusic()? 1 : 0);
+            pr.println(user.getInGameMusic()? 1 : 0);
+            pr.println(user.getEnvironmentSounds()? 1 : 0);
+            pr.close();
+        }
+        catch (FileNotFoundException e) {
+            System.out.println(e);
+        }
+        catch (IOException e) {
+            System.out.println(e);
+        }
+    }
     private synchronized void start() {
         running = true;
         thread.start();
@@ -127,6 +346,9 @@ public class Game extends Canvas implements Runnable {
                 level[currentLevel].update();
                 camera.update();
                 player.update();
+                if (user != null) {
+                    user.update();
+                }
                 delta--;
             }
             render();//displays to the screen unrestricted time

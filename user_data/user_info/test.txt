@@ -1,0 +1,30 @@
+65
+3.25 2.5
+3
+2.0 2.0
+1 2 4
+655
+1
+0
+1
+
+
+// Last facing direction
+65
+// Last lobby position
+3.25 2.5
+// Last level
+3
+// Last level position
+2.0 2.0
+// Levels cleared
+1 2 4
+// Total time elapsed (sec)
+655
+// Settings
+// Menu music
+1
+// In-game music
+0
+// Enviornment sounds
+1

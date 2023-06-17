@@ -620,7 +620,10 @@ public class Player {
     public void setY(double y) {
         this.y = y;
     }
-
+    
+    public void setFacing(int facing) {
+        this.facing = facing;
+    }
 
 
 
