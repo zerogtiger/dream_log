@@ -132,32 +132,59 @@ public abstract class Level {
             // System.out.println(playerx);
             // System.out.println(portalCheck[quadrant].f * (playerx - (int) playerx - 0.5));
             if (length >= 3 && Math.abs((Game.player.getFacing() + 45)%360 - (value[0] + 45)%360) <= 25 && flag) {
+                // Same level teleportation
+                if (length == 3) {
+                    Game.player.setX(playerx - (int) playerx + value[1]);
+                    Game.player.setY(playery - (int) playery + value[2]);
+                }
+                // Inter-level teleportation
                 if (length == 4) {
                     // If we are teleporting away
-                    if (Game.currentLevel == 0) {
-                        // Set the last level to be the target level
-                        Game.user.setLastLevel(value[3]);
-                        // Remember last lobby position
-                        Game.user.setLastLobbyPosition(Game.player.getPrevX(), Game.player.getPrevY());
+                    if (Game.currentLevel == 0 && !Game.user.getLevelsCleared().contains(value[3])) {
+                        // Fresh start to a level
+                        if (Game.user.getLastLevel() == 0) {
+                            // Set the last level to be the target level
+                            Game.user.setLastLevel(value[3]);
+                            // Remember last lobby position
+                            Game.user.setLastLobbyPosition(Game.player.getPrevX(), Game.player.getPrevY());
+                            // Update current level
+                            Game.currentLevel = value[3];
+                            // Remember the original teleported position
+                            Game.level[Game.currentLevel].setOrigin((int) playerx, (int) playery);
+                            // Teleport player
+                            Game.player.setX(playerx - (int) playerx + value[1]);
+                            Game.player.setY(playery - (int) playery + value[2]);
+                        }
+                        // Continue the same level
+                        else if (Game.user.getLastLevel() == value[3]) {
+                            // Remember last lobby position
+                            Game.user.setLastLobbyPosition(Game.player.getPrevX(), Game.player.getPrevY());
+                            // Update current level
+                            Game.currentLevel = value[3];
+                            // Remember the original teleported position
+                            Game.level[Game.currentLevel].setOrigin((int) playerx, (int) playery);
+                            // Teleport player
+                            Game.player.setX(Game.user.getLastLevelX());
+                            Game.player.setY(Game.user.getLastLevelY());
+                        }
                     }
                     // If we're teleporting back to the lobby
-                    else {
+                    else if (Game.currentLevel != 0) {
                         // Add the current level to the list of completed levels
                         Game.user.addLevelCleared(Game.currentLevel);
-                        // Last level last level position to be the previous position of the player
-                        Game.user.setLastLevelPosition(Game.player.getPrevX(), Game.player.getPrevY());
+                        // Completed level, 0 assigned to last level
+                        Game.user.setLastLevel(0);
                         // If user has completed all levels, then add it to the list of users who've also done so
                         if (Game.user.getLevelsCleared().size() == 4) {
                             Game.completedUsers.add(Game.user);
                         }
+                        // Update current level
+                        Game.currentLevel = value[3];
+                        // Teleport back to original position
+                        Game.player.setX(playerx - (int) playerx + value[1]);
+                        Game.player.setY(playery - (int) playery + value[2]);
                     }
-                    // Update current level
-                    Game.currentLevel = value[3];
-                    // Remember the original teleported position
-                    Game.level[Game.currentLevel].setOrigin((int) playerx, (int) playery);
                 }
-                Game.player.setX(playerx - (int) playerx + value[1]);
-                Game.player.setY(playery - (int) playery + value[2]);
             }
         }
         refresh();
@@ -165,11 +192,14 @@ public abstract class Level {
 
     private void specialFunctions(int i) {
         boolean menuOption = false;
+        // Continue game
         if (i == 1) {
-            if (Game.user.getLastLevel() != 0) {
+            if (Game.user.getLastLevel() != 0 && !Game.user.getLevelsCleared().contains(Game.user.getLastLevel())) {
+                Game.user.setLastLobbyPosition(Game.player.getPrevX(), Game.player.getPrevY());
                 Game.currentLevel = Game.user.getLastLevel();
                 Game.player.setX(Game.user.getLastLevelX());
                 Game.player.setY(Game.user.getLastLevelY());
+                Game.level[Game.currentLevel].setOrigin((int) Game.player.getX(), (int) Game.player.getY());
             }
         }
         else if (i == 2) {

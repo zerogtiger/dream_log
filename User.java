@@ -42,6 +42,8 @@ public class User implements Comparable<User> {
             levelsCleared = new HashSet<>();
             String[] tmpLine = br.readLine().split(" ");
             for (String s : tmpLine) {
+                if (s.equals("")) 
+                    continue;
                 levelsCleared.add(Integer.parseInt(s));
             }
             timeElapsedSeconds = Long.parseLong(br.readLine());
