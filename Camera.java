@@ -22,7 +22,7 @@ public class Camera {
     // 
     public Camera(int zoom) {
         this.zoom = zoom;
-        player = Game.getPlayer();
+        player = Game.player;
     }
 
     public void update() {

@@ -63,8 +63,8 @@ public class User implements Comparable<User> {
         this.password = password;
         // Last lobby positions
         lastLevel = 0;
-        lastLevelX = 2;
-        lastLevelY = 2;
+        lastLobbyX = 2;
+        lastLobbyY = 2;
         levelsCleared = new HashSet<>();
         timeElapsedSeconds = 0;
         menuMusic = true;
@@ -73,6 +73,8 @@ public class User implements Comparable<User> {
     }
 
     public void update() {
+        if (levelsCleared.size() == 4)
+            return;
         counter++;
         if (counter == 60) {
             timeElapsedSeconds++;
@@ -124,6 +126,18 @@ public class User implements Comparable<User> {
 
     public void setLastfacing(int facing) {
         this.lastFacing = facing;
+    }
+
+    public void setMenuMusic(boolean menuMusic) {
+        this.menuMusic = menuMusic;
+    }
+
+    public void setInGameMusic(boolean inGameMusic) {
+        this.inGameMusic = inGameMusic;
+    }
+
+    public void setEnvironmentSounds(boolean environmentSounds) {
+        this.environmentSounds = environmentSounds;
     }
 
     // Getters

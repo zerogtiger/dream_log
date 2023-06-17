@@ -146,6 +146,10 @@ public abstract class Level {
                         Game.user.addLevelCleared(Game.currentLevel);
                         // Last level last level position to be the previous position of the player
                         Game.user.setLastLevelPosition(Game.player.getPrevX(), Game.player.getPrevY());
+                        // If user has completed all levels, then add it to the list of users who've also done so
+                        if (Game.user.getLevelsCleared().size() == 4) {
+                            Game.completedUsers.add(Game.user);
+                        }
                     }
                     // Update current level
                     Game.currentLevel = value[3];
@@ -160,6 +164,7 @@ public abstract class Level {
     }
 
     private void specialFunctions(int i) {
+        boolean menuOption = false;
         if (i == 1) {
             if (Game.user.getLastLevel() != 0) {
                 Game.currentLevel = Game.user.getLastLevel();
@@ -175,7 +180,33 @@ public abstract class Level {
             System.exit(0);
         }
         else if (i == 4) {
-            
+            int result = JOptionPane.showOptionDialog(null, Game.getTutorialPanel(), "About & Instructions", JOptionPane.YES_OPTION, JOptionPane.PLAIN_MESSAGE, null, new Object[]{"Close"}, null);
+            menuOption = true;
+        }
+        else if (i == 5) {
+            Game.showLeaderboard();
+            menuOption = true;
+        }
+        else if (i == 6) {
+            Game.user.setMenuMusic(!Game.user.getMenuMusic());
+            menuOption = true;
+        }
+        else if (i == 7) {
+            Game.user.setInGameMusic(!Game.user.getInGameMusic());
+            menuOption = true;
+        }
+        else if (i == 8) {
+            Game.user.setEnvironmentSounds(!Game.user.getEnvironmentSounds());
+            menuOption = true;
+        }
+        // (Band-Aid solution) If toggled menu option, teleport the player out
+        if (menuOption) {
+            Game.left = false;
+            Game.right = false;
+            Game.forward = false;
+            Game.backward = false;
+            Game.player.setX(Game.player.getPrevX() + 0.5);
+            Game.player.setY(Game.player.getPrevY() + 0.5);
         }
     }
 

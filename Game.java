@@ -30,16 +30,19 @@ public class Game extends Canvas implements Runnable {
     public static Player player;
     public static User user;
     public static LinkedList<User> allUsers = new LinkedList<>();
+    public static TreeSet<User> completedUsers = new TreeSet<>(new SortByTime());
     public static Camera camera;
     public static Level[] level;
     // Current level player is on. 0 for main lobby
     public static int currentLevel;
 
     // Option dialogue components
-    private JPanel loginPanel, newAccountPanel, leaderboardPanel;
-    private JTextField loginField, passwordField, newAccountField, newPassword1Field, newPassword2Field;
-    private JLabel loginLabel, newAccountLabel;
-    private final String[] loginOptions = {"New Account", "Cancel", "Log In"}, newAccountOptions = {"Cancel", "Sign Up"};
+    private static JPanel loginPanel, newAccountPanel, leaderboardPanel, tutorialPanel;
+    private static JTextField loginField, passwordField, newAccountField, newPassword1Field, newPassword2Field;
+    private static JLabel loginLabel, newAccountLabel, tutorialTopLabel, tutorialTopRightLabel, tutorialCenterLabel, tutorialBottomLabel, tutorialImageLabel, leaderboardLabel;
+    private static final String[] loginOptions = {"New Account", "Cancel", "Log In"}, newAccountOptions = {"Cancel", "Sign Up"};
+    private static JTable leaderboard; 
+    private static Object[] header, ranking[];
 
     public Game() {
 
@@ -146,6 +149,99 @@ public class Game extends Canvas implements Runnable {
         c.gridy = 3;
         newAccountPanel.add(newAccountLabel, c);
 
+        tutorialTopLabel = new JLabel("<HTML> This is your dream <br> &emsp &emsp --a log of your dream <br> &emsp &emsp &emsp &emsp __a dream_log</HTML>");
+        tutorialTopLabel.setFont(new Font("consolas", Font.PLAIN, 18));
+        tutorialTopRightLabel = new JLabel("A Game by zerogtiger (aka. Tiger Ding) for ICS4U");
+        tutorialTopRightLabel.setFont(new Font("consolas", Font.PLAIN, 12));
+        tutorialCenterLabel = new JLabel("Instructions");
+        tutorialCenterLabel.setFont(new Font("consolas", Font.BOLD, 28));
+        tutorialBottomLabel = new JLabel("<HTML>Complete all dream levels <br> &emsp __in the shortest possible time </HTML>");
+        tutorialBottomLabel.setFont(new Font("consolas", Font.PLAIN, 18));
+
+        tutorialImageLabel = new JLabel(new ImageIcon("level_data/instructions.png"));
+        tutorialPanel = new JPanel();
+        tutorialPanel = new JPanel(new GridBagLayout());
+        c.anchor = GridBagConstraints.WEST;
+        c.fill = GridBagConstraints.BOTH;
+        c.weightx = 1;
+        c.weighty = 1;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.gridwidth = 1;
+        tutorialPanel.add(tutorialTopLabel, c);
+        c.gridy = 1;
+        tutorialPanel.add(new JLabel("   "), c);
+        c.anchor = GridBagConstraints.EAST;
+        c.gridy = 2;
+        tutorialPanel.add(tutorialTopRightLabel, c);
+        c.anchor = GridBagConstraints.WEST;
+        JSeparator sep = new JSeparator(JSeparator.HORIZONTAL);
+        c.gridy = 3;
+        tutorialPanel.add(new JLabel("   "), c);
+        c.gridy = 4;
+        tutorialPanel.add(sep, c);
+        c.gridy = 5;
+        tutorialPanel.add(new JLabel("   "), c);
+        c.gridy = 6;
+        tutorialPanel.add(tutorialCenterLabel, c);
+        c.gridy = 7;
+        tutorialPanel.add(tutorialImageLabel, c);
+        c.gridy = 8;
+        tutorialPanel.add(new JLabel("   "), c);
+        c.gridy = 9;
+        tutorialPanel.add(tutorialBottomLabel, c);
+        
+        // Leaderboard screen
+        header = new Object[]{"R_ank", "Use__rna_me", "T__ime (hh:mm:ss)"};
+        ranking = new Object[][]{
+            {"1", "-------", "-----"},
+            {"2", "-------", "-----"}, 
+            {"3", "-------", "-----"}, 
+            {"4", "-------", "-----"}, 
+            {"5", "-------", "-----"}, 
+            {"6", "-------", "-----"}, 
+            {"7", "-------", "-----"}, 
+            {"8", "-------", "-----"}, 
+            {"9", "-------", "-----"}, 
+            {"10", "-------", "-----"}, 
+            {"11", "-------", "-----"}, 
+            {"12", "-------", "-----"}, 
+            {"13", "-------", "-----"}, 
+            {"14", "-------", "-----"}, 
+            {"15", "-------", "-----"}, 
+            {"16", "-------", "-----"}, 
+            {"17", "-------", "-----"}, 
+            {"18", "-------", "-----"}, 
+            {"19", "-------", "-----"}, 
+            {"20", "-------", "-----"}
+        };
+
+        leaderboard = new JTable();
+        leaderboard = new JTable(ranking, header) {
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+		// Table appearance settings
+        leaderboard.setFont(new Font("Consolas", Font.PLAIN, 14));
+        leaderboard.setRowHeight(20);
+        // leaderboard.getColumnModel().getColumn(0).setPreferredWidth(30);
+        leaderboard.getColumnModel().getColumn(0).setMinWidth(45);
+        leaderboard.getColumnModel().getColumn(0).setMaxWidth(45);
+        leaderboard.getColumnModel().getColumn(1).setPreferredWidth(150);
+        leaderboard.getColumnModel().getColumn(1).setMinWidth(60);
+        // leaderboard.getColumnModel().getColumn(2).setPreferredWidth(40);
+        leaderboard.getColumnModel().getColumn(2).setMinWidth(110);
+        leaderboard.getColumnModel().getColumn(2).setMaxWidth(110);
+
+        leaderboardLabel = new JLabel("lea_de_rboar__d");
+        leaderboardLabel.setFont(new Font("consolas", Font.BOLD, 28));
+
+        leaderboardPanel = new JPanel(new BorderLayout());
+
+        leaderboardPanel.add(leaderboardLabel, BorderLayout.NORTH);
+        leaderboardPanel.add(new JScrollPane(leaderboard), BorderLayout.CENTER);
+
         retriveAllUserInfo();
 
         getUserInfo();
@@ -155,9 +251,14 @@ public class Game extends Canvas implements Runnable {
         try {
             BufferedReader br = new BufferedReader(new FileReader("user_data/login_info.txt"));
             String line, tmpArray[];
+            User tmp;
             while ((line = br.readLine()) != null) {
                 tmpArray = line.split(" ");
-                allUsers.add(new User(tmpArray[0], tmpArray[1], "user_data/user_info/" + tmpArray[0] + ".txt"));
+                tmp = new User(tmpArray[0], tmpArray[1], "user_data/user_info/" + tmpArray[0] + ".txt");
+                allUsers.add(tmp);
+                if (tmp.getLevelsCleared().size() == 4) {
+                    completedUsers.add(tmp);
+                }
             }
             Collections.sort(allUsers);
             br.close();
@@ -245,7 +346,7 @@ public class Game extends Canvas implements Runnable {
                 // Get username and password (sha-256 encoded)
                 String username = loginField.getText(), password = User.sha256hash(passwordField.getText());
                 int idx;
-                if ((idx = Collections.binarySearch(allUsers, new User(username, password), new CompareByNamePassword())) >= 0) {
+                if ((idx = Collections.binarySearch(allUsers, new User(username, password), new SortByNamePassword())) >= 0) {
                     user = allUsers.get(idx);
                     loginLabel.setVisible(false);
                 }
@@ -261,6 +362,23 @@ public class Game extends Canvas implements Runnable {
         player.setX(user.getLastLobbyX() + 0.5);
         player.setY(user.getLastLobbyY() + 0.5);
         player.setFacing(user.getLastFacing());
+    }
+
+    public static void showLeaderboard() {
+        int counter = 0;
+        for (User u : completedUsers) {
+            ranking[counter][1] = u.getName();
+            ranking[counter][2] = secondsToTime(u.getTimeElapsedSeconds());
+            counter++;
+        }
+        JOptionPane.showOptionDialog(null, leaderboardPanel, "lea_de_rboar__d", JOptionPane.YES_OPTION, JOptionPane.PLAIN_MESSAGE, null, new Object[]{"Close"}, null);
+    }
+
+    public static String secondsToTime(Long timeElapsedSeconds) {
+        long hour = timeElapsedSeconds/3600;
+        int minute = (int) (timeElapsedSeconds%3600/60);
+        int second = (int) (timeElapsedSeconds%60);
+        return String.format("%02d:%02d:%02d", hour, minute, second);
     }
 
     public static void recordUserInfo() {
@@ -364,8 +482,8 @@ public class Game extends Canvas implements Runnable {
         return HEIGHT;
     }
 
-    public static Player getPlayer() {
-        return player;
+    public static JPanel getTutorialPanel() {
+        return tutorialPanel;
     }
 
     public static void main(String [] args) {
