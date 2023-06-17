@@ -32,7 +32,7 @@ public class KeyInput extends KeyAdapter {
         else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             if (Game.currentLevel != 0) {
                 Game.user.setLastLevel(Game.currentLevel);
-                Game.user.setLastLevelPosition((int) Game.player.getX(), (int) Game.player.getY());
+                Game.user.setLastLevelPosition(Game.player.getX(), Game.player.getY());
                 Game.currentLevel = 0;
                 Game.player.setX(Game.user.getLastLobbyX());
                 Game.player.setY(Game.user.getLastLobbyY());

@@ -279,7 +279,7 @@ public class Game extends Canvas implements Runnable {
             // Repeatedly ask user for input if user closes the dialogue box
             passwordField.setText("");
             do {
-                result = JOptionPane.showOptionDialog(null, loginPanel, "Log in", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, loginOptions, null);
+                result = JOptionPane.showOptionDialog(null, loginPanel, "User Log In", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, loginOptions, null);
             } while (result == JOptionPane.CLOSED_OPTION);
             // If user wish to create a new account
             if (result == JOptionPane.YES_OPTION) {
@@ -291,7 +291,7 @@ public class Game extends Canvas implements Runnable {
                 boolean creatable = true;
                 do {
                     // Get user input from dialogue box
-                    result = JOptionPane.showOptionDialog(null, newAccountPanel, "Log in", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, newAccountOptions, null);
+                    result = JOptionPane.showOptionDialog(null, newAccountPanel, "Create Account", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, newAccountOptions, null);
 
                     // If selected create new account
                     if (result == JOptionPane.NO_OPTION) {
@@ -435,15 +435,17 @@ public class Game extends Canvas implements Runnable {
         gi.fillRect(0, 0, 1, 1);
         gi.setColor(Color.RED);
         gi.fillRect(SCREEN_WIDTH-1, SCREEN_HEIGHT-1, 1, 1);
-        // gi.setColor(Color.gray);
-        // gi.fillRect(SCREEN_WIDTH/2-2, SCREEN_HEIGHT/2-2, 8, 8);
         player.render(gi);
-        // gi.setColor(Color.RED);
-        // gi.fillPolygon(new int[]{50, 20, 30}, new int[]{40, 60, 10}, 3);
-        // gi.fillRect(162, 92, 3, 3);
 
         // Draw the image such that 0, 0 is at the bottom left corner. Makes handling rotation easier
         g.drawImage(image, 0, 0+HEIGHT, WIDTH, -HEIGHT, null);
+        g.setFont(new Font("Consolas", Font.PLAIN, 15));
+        g.setColor(Color.WHITE);
+        g.fillRect(20, HEIGHT-50, 88, 30);
+        if (user != null) {
+            g.setColor(Color.BLACK);
+            g.drawString(secondsToTime(user.getTimeElapsedSeconds()) + "", 30, HEIGHT-30);
+        }
         g.dispose();
         bs.show();
     }

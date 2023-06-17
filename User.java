@@ -112,7 +112,7 @@ public class User implements Comparable<User> {
         lastLevel = level;
     }
 
-    public void setLastLobbyPosition(int x, int y) {
+    public void setLastLobbyPosition(double x, double y) {
         lastLobbyX = x;
         lastLobbyY = y;
     }
@@ -121,7 +121,7 @@ public class User implements Comparable<User> {
         levelsCleared.add(level);
     }
 
-    public void setLastLevelPosition(int x, int y) {
+    public void setLastLevelPosition(double x, double y) {
         lastLevelX = x;
         lastLevelY = y;
     }
