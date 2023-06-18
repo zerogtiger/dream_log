@@ -66,6 +66,9 @@ public class Player {
     private BufferedImage mergeMask;
 
     // Constructor
+    // Description: initializes the player
+    // Parameters: initial x, initial y, direction facing
+    // Return: none
     public Player(double x, double y, int facing) {
         // Initialize player location / orientation variables
         this.x = x;
@@ -94,6 +97,9 @@ public class Player {
         mask.createGraphics();
     }
 
+    // Description: updates player position
+    // Parameters: none
+    // Return: void
     public void update() {
 
         // System.out.println(x + " | " + y);
@@ -140,16 +146,6 @@ public class Player {
             else 
                 x += speed;
         }
-        // if (Game.forward && !blockFront)
-        //     y += speed;
-        // else if (blockFront && y - (int) y > 0.75)
-        //     y = (int) y + 0.75;
-        // else if (Game.backward && !blockBack)
-        //     y -= speed;
-        // if (Game.left && !blockLeft)
-        //     x -= speed;
-        // else if (Game.right && !blockRight)
-        //     x += speed;
         if (Game.turnRight)
             facing += turnSpeed;
         else if (Game.turnLeft)
@@ -159,9 +155,6 @@ public class Player {
             prevx = oldx;
             prevy = oldy;
         }
-        // System.out.println(x + " | " + prevx);
-
-        // System.out.println(x + " | " + y + " | " + blockBack + " | " + blockLeft);
         // Update facing value such that it is always in the range [0, 360)
         facing = (facing%360 + 360)%360;
 
@@ -180,25 +173,15 @@ public class Player {
         }
     }
 
-    // public void mergeMask() {
-    //     for (int i = 0; i < Game.SCREEN_WIDTH; i++) {
-    //         for (int j = 0; j < Game.SCREEN_HEIGHT; j++) {
-    //             int red = Math.max((mask.getRGB(i, j) & 0x00ff0000) >> 16, (mergeMask.getRGB(i, j) & 0x00ff0000) >> 16);
-    //             int green = Math.max((mask.getRGB(i, j) & 0x0000ff00) >> 8, (mergeMask.getRGB(i, j) & 0x0000ff00) >> 8);
-    //             int blue = Math.max((mask.getRGB(i, j) & 0x000000ff), (mask.getRGB(i, j) & 0x000000ff));
-    //             mask.setRGB(i, j, (red << 16) | (green << 8) | blue);
-    //         }
-    //     }
-    // }
-
     // Render methods
+    // Description: renders the player to screen (shadows, objects in view, player itself)
+    // Parameters: graphics object to be used for render
+    // Return: none
     public void render(Graphics g) {
         // Get and clear graphics object for image mask
         Graphics gi = mask.getGraphics();
         // Graphics gii = mergeMask.getGraphics();
         gi.clearRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
-
-        // mergeMask();
 
         Pair xRange = new Pair(
             Math.max(
@@ -264,6 +247,9 @@ public class Player {
         renderPlayer(g);
     }
 
+    // Description: helper function to render the shadows behind the player
+    // Parameters: graphics object to be used
+    // Return: none
     private void renderPlayerShadow(Graphics g) {
         // Graphics gi = mask.createGraphics();
         // gi.clearRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
@@ -322,12 +308,18 @@ public class Player {
                                 endpoints[1][1]}, 6);
     }
 
+    // Description: renders the semi-transparent objects, such as glass or barriers
+    // Parameters: graphics object to be used, the cell which is to be rendered
+    // Return: none
     private void renderTransparentObjectShadow(Graphics g, int cellX, int cellY) {
+        // Check object type
         if (Game.level[Game.currentLevel].getGrid(cellX, cellY) == 2) {
             g.setColor(MASK_CONSTANTS[2]);
             g.fillRect(Game.SCREEN_WIDTH/2 + (int) ((-x + cellX)*8), Game.SCREEN_HEIGHT/2 + (int) ((-y + cellY)*8), 8, 8);
         }
+        // Glass
         else if (Game.level[Game.currentLevel].getGrid(cellX, cellY) > 0 && Game.level[Game.currentLevel].getGrid(cellX, cellY) == 3) {
+            // Endpoints, where the ray hits
             int endpoints[][] = new int[4][2];
             double slope;
             for (int v =0; v < 4; v++) {
@@ -364,6 +356,7 @@ public class Player {
                 }
             }
             g.setColor(MASK_CONSTANTS[3]);
+            // Determien polygon endpoints
             for (int v = 0; v < 4; v++) {
                 int[] xPoints, yPoints;
                 if ((endpoints[v%4][0] == endpoints[(v+1)%4][0] && xEdgeValues.contains(endpoints[v%4][0] - Game.SCREEN_WIDTH/2)) || (endpoints[v%4][1] == endpoints[(v+1)%4][1] && yEdgeValues.contains(endpoints[v%4][1] - Game.SCREEN_HEIGHT/2))) {
@@ -414,11 +407,15 @@ public class Player {
                         (int) (-y*8) + Game.SCREEN_HEIGHT/2 + (cellY + vertexDelta[(v+1)%4][1])*8
                     };
                 }
+                // Render polygon
                 g.fillPolygon(xPoints, yPoints, xPoints.length);
             }
         }
     }
 
+    // Description: renders opaque object shadows
+    // Parameters: graphics object to be used, x and y coordinate of cell
+    // Return: none
     private void renderObjectShadow(Graphics g, int cellX, int cellY) {
         if (Game.level[Game.currentLevel].getGrid(cellX, cellY) == 1) {
             int endpoints[][] = new int[4][2];
@@ -457,7 +454,7 @@ public class Player {
                 }
             }
             g.setColor(MASK_CONSTANTS[Game.level[Game.currentLevel].getGrid(cellX, cellY)]);
-            // g.setColor(new Color(2, 2, 2));
+            // Determine polygon endpoints
             for (int v = 0; v < 4; v++) {
                 int[] xPoints, yPoints;
                 if ((endpoints[v%4][0] == endpoints[(v+1)%4][0] && xEdgeValues.contains(endpoints[v%4][0] - Game.SCREEN_WIDTH/2)) || (endpoints[v%4][1] == endpoints[(v+1)%4][1] && yEdgeValues.contains(endpoints[v%4][1] - Game.SCREEN_HEIGHT/2))) {
@@ -508,12 +505,15 @@ public class Player {
                         (int) (-y*8) + Game.SCREEN_HEIGHT/2 + (cellY + vertexDelta[(v+1)%4][1])*8
                     };
                 }
+                // Draw the polygon
                 g.fillPolygon(xPoints, yPoints, xPoints.length);
             }
         }
     }
 
-
+    // Description: renders the player spite
+    // Parameters: graphics object to be used
+    // Return: none
     private void renderPlayer(Graphics g) {
         // Player
         // Center of the screen
@@ -562,7 +562,4 @@ public class Player {
     public void setFacing(int facing) {
         this.facing = facing;
     }
-
-
-
 }

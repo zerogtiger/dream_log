@@ -46,7 +46,7 @@ public class Game extends Canvas implements Runnable {
     // Option dialogue components
     private static JPanel loginPanel, newAccountPanel, leaderboardPanel, tutorialPanel;
     private static JTextField loginField, passwordField, newAccountField, newPassword1Field, newPassword2Field;
-    private static JLabel loginLabel, newAccountLabel, tutorialTopLabel, tutorialTopRightLabel, tutorialCenterLabel, tutorialBottomLabel, tutorialImageLabel, leaderboardLabel;
+    private static JLabel loginLabel, newAccountLabel, tutorialTitleLabel, tutorialTopLabel, tutorialTopRightLabel, tutorialCenterLabel, tutorialBottomLabel, tutorialImageLabel, leaderboardLabel;
     private static final String[] loginOptions = {"New Account", "Cancel", "Log In"}, newAccountOptions = {"Cancel", "Sign Up"};
     private static JTable leaderboard; 
     private static Object[] header, ranking[];
@@ -222,13 +222,15 @@ public class Game extends Canvas implements Runnable {
         newAccountPanel.add(newAccountLabel, c);
 
         // Tutorial and instructions page
+        tutorialTitleLabel = new JLabel("dream_log");
+        tutorialTitleLabel.setFont(new Font("consolas", Font.BOLD, 80));
         tutorialTopLabel = new JLabel("<HTML> This is your dream <br> &emsp &emsp --a log of your dream <br> &emsp &emsp &emsp &emsp __a dream_log</HTML>");
         tutorialTopLabel.setFont(new Font("consolas", Font.PLAIN, 18));
         tutorialTopRightLabel = new JLabel("A Game by zerogtiger (aka. Tiger Ding) for ICS4U");
         tutorialTopRightLabel.setFont(new Font("consolas", Font.PLAIN, 12));
         tutorialCenterLabel = new JLabel("Instructions");
-        tutorialCenterLabel.setFont(new Font("consolas", Font.BOLD, 28));
-        tutorialBottomLabel = new JLabel("<HTML>Complete all dream levels <br> &emsp __in the shortest possible time </HTML>");
+        tutorialCenterLabel.setFont(new Font("consolas", Font.BOLD, 24));
+        tutorialBottomLabel = new JLabel("<HTML>You may press [ESC] at any time to quit back to the lobby.<br> However, you are only allowed to enter another level once you finish the current one.<br> To continue a level, enter the \"continue\" portal. <br> You are forbidden to re-enter a level you have completed. <br><br>Complete all dream levels <br> &emsp __in the shortest possible time<br><br> Quit the game from the lobby's portal to avoid losing your progress <br><br> Don't lose yourself. </HTML>");
         tutorialBottomLabel.setFont(new Font("consolas", Font.PLAIN, 18));
 
         tutorialImageLabel = new JLabel(new ImageIcon("level_data/instructions.png"));
@@ -241,6 +243,7 @@ public class Game extends Canvas implements Runnable {
         c.gridx = 0;
         c.gridy = 0;
         c.gridwidth = 1;
+        tutorialPanel.add(tutorialTitleLabel, c);
         tutorialPanel.add(tutorialTopLabel, c);
         c.gridy = 1;
         tutorialPanel.add(new JLabel("   "), c);
@@ -451,11 +454,14 @@ public class Game extends Canvas implements Runnable {
                     passwordField.setText("");
                 }
             }
+
         }
         // Set player lobby position
         player.setX(user.getLastLobbyX() + 0.5);
         player.setY(user.getLastLobbyY() + 0.5);
         player.setFacing(user.getLastFacing());
+        // Show tutorial screen
+        result = JOptionPane.showOptionDialog(null, Game.getTutorialPanel(), "About & Instructions", JOptionPane.YES_OPTION, JOptionPane.PLAIN_MESSAGE, null, new Object[]{"Close"}, null);
     }
 
     // Descripton: shows the leaderboard popup menu
@@ -594,6 +600,9 @@ public class Game extends Canvas implements Runnable {
                     }
                     else if (!user.getMenuMusic()) 
                         menuMusic.stop();
+                    if (currentLevel == 0) {
+                        stopEnvironmentSound();
+                    }
                 }
                 delta--;
             }

@@ -1,3 +1,5 @@
+// Class description: camera that keeps track of screen in relation to the scene
+
 import javax.swing.*;
 import java.util.*;
 import java.io.*;
@@ -15,16 +17,22 @@ public class Camera {
 
     */
     private double zoom;
+    // Location of camera
     private double centerx, centery, topy, leftx, bottomy, rightx;
     private Player player;
     
     // Constructor
-    // 
+    // Description: initializes camera variables
+    // Parameters: the zoom the camera is to use
+    // Return: none
     public Camera(int zoom) {
         this.zoom = zoom;
         player = Game.player;
     }
 
+    // Description: updates camera locations according to player locations
+    // Parameters: none
+    // Return: void
     public void update() {
         // Update camera coordinates
         centerx = player.getX();
@@ -36,11 +44,6 @@ public class Camera {
 
         leftx = (int) (centerx - Math.ceil(zoom));
         rightx = (int) (centerx + Math.ceil(zoom));
-    }
-
-    public void render(Graphics g) {
-        
-        
     }
 
     // Getters

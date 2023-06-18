@@ -1,3 +1,5 @@
+// Class description: Level abstract class responsible for all level-related updates and data
+
 import javax.swing.*;
 import javax.sound.sampled.*;
 import java.awt.image.*;
@@ -22,6 +24,7 @@ public abstract class Level {
     protected Pair exit;
     private BufferedImage image;
 
+    // Useful constant to keep track of which direction the portal is facing
     private final Pair[] portalCheck = {
         new Pair(0, 1), 
         new Pair(1, 0),
@@ -29,6 +32,10 @@ public abstract class Level {
         new Pair(-1, 0)
     };
 
+    // Constructor
+    // Description: initializes the level by loading in all required data
+    // Parameters: level number, Level grid description, teleportation info file, overlay image location, value to shift player's position by (not used)
+    // Return: none
     public Level(int levelNum, String gridFile, String updateFile, String levelOverlay, int shiftx, int shifty) {
         this.levelNum = levelNum;
         update = new HashMap<>();
@@ -116,32 +123,41 @@ public abstract class Level {
         }
     }
 
+    // Description: renders the image overlay
+    // Parameters: the graphics obejct to be used
+    // Return: none
     public void render(Graphics g) {
-        // g.drawImage(image, Game.SCREEN_WIDTH/2-(int) (Game.player.getX()*8), yLength*4-(int) (Game.player.getY()*8), xLength*8, -yLength*8, null);
         g.drawImage(image, Game.SCREEN_WIDTH/2-(int) (Game.player.getX()*8), Game.SCREEN_HEIGHT/2 + yLength*8 - (int) (Game.player.getY()*8), xLength*8, -yLength*8, null);
     }
 
 
+    // Description: updates the player's positions via teleportaton
+    // Parameters: none
+    // Return: none
     public void update() {
+        // Current position
         double playerx = Game.player.getX(), playery = Game.player.getY();
+        // Previous position
         int prevx = Game.player.getPrevX(), prevy = Game.player.getPrevY();
         // flag indicates whether the player came from an adjacent cell
         boolean flag = ((prevx == (int) playerx-1 || prevx == (int) playerx + 1) && (prevy == (int) playery)) || ((prevy == (int) playery-1 || prevy == (int) playery + 1) && (prevx == (int) playerx));
+        // If teleportation info contains the coordinate
         if (update.containsKey(new Pair((int) playerx, (int) playery)) && flag) {
             int[] value = update.get(new Pair((int) playerx, (int) playery));
             int length = value.length;
+            // Determine action to be performed based on the length of the value
+            // Perform special function
             if (length == 1) {
                 specialFunctions(value[0]);
             }
+            // Implicit teleportation
             else if (length == 2) {
                 Game.player.setX(playerx - (int) playerx + value[0]);
                 Game.player.setY(playery - (int) playery + value[1]);
             }
+            // Explicit teleportation
             int quadrant = value[0]/90;
             flag = portalCheck[quadrant].f * (playerx - (int) playerx - 0.5) >= 0 && portalCheck[quadrant].s * (playery - (int) playery - 0.5) >= 0;
-            // System.out.println(flag);
-            // System.out.println(playerx);
-            // System.out.println(portalCheck[quadrant].f * (playerx - (int) playerx - 0.5));
             if (length >= 3 && Math.abs((Game.player.getFacing() + 45)%360 - (value[0] + 45)%360) <= 25 && flag) {
                 // Same level teleportation
                 if (length == 3) {
@@ -205,6 +221,8 @@ public abstract class Level {
                         }
                         // Update current level
                         Game.currentLevel = value[3];
+                        // Remember the original teleported position
+                        Game.level[Game.currentLevel].setOrigin((int) playerx, (int) playery);
                         // Teleport back to original position
                         Game.player.setX(playerx - (int) playerx + value[1]);
                         Game.player.setY(playery - (int) playery + value[2]);
@@ -223,6 +241,9 @@ public abstract class Level {
         refresh();
     }
 
+    // Description: all the special functions performable given the player's position
+    // Parameters: the value corresponding the special function
+    // Return: none
     private void specialFunctions(int i) {
         boolean menuOption = false;
         // Continue game
@@ -230,9 +251,9 @@ public abstract class Level {
             if (Game.user.getLastLevel() != 0 && !Game.user.getLevelsCleared().contains(Game.user.getLastLevel())) {
                 Game.user.setLastLobbyPosition(Game.player.getPrevX(), Game.player.getPrevY());
                 Game.currentLevel = Game.user.getLastLevel();
+                Game.level[Game.currentLevel].setOrigin((int) Game.player.getX(), (int) Game.player.getY());
                 Game.player.setX(Game.user.getLastLevelX());
                 Game.player.setY(Game.user.getLastLevelY());
-                Game.level[Game.currentLevel].setOrigin((int) Game.player.getX(), (int) Game.player.getY());
                 Game.menuMusic.stop();
                 // Start music
                 if (Game.user.getInGameMusic()) {
@@ -242,29 +263,32 @@ public abstract class Level {
                 }
             }
         }
-        else if (i == 2) {
-            
-        }
+        // Exit the game
         else if (i == 3) {
             Game.recordUserInfo();
             System.exit(0);
         }
+        // About & instructions pop-up
         else if (i == 4) {
             int result = JOptionPane.showOptionDialog(null, Game.getTutorialPanel(), "About & Instructions", JOptionPane.YES_OPTION, JOptionPane.PLAIN_MESSAGE, null, new Object[]{"Close"}, null);
             menuOption = true;
         }
+        // Leaderboard
         else if (i == 5) {
             Game.showLeaderboard();
             menuOption = true;
         }
+        // Toggle menu music
         else if (i == 6) {
             Game.user.setMenuMusic(!Game.user.getMenuMusic());
             menuOption = true;
         }
+        // Toggle in-game music
         else if (i == 7) {
             Game.user.setInGameMusic(!Game.user.getInGameMusic());
             menuOption = true;
         }
+        // tobble evironment sounds
         else if (i == 8) {
             Game.user.setEnvironmentSounds(!Game.user.getEnvironmentSounds());
             menuOption = true;
@@ -280,6 +304,7 @@ public abstract class Level {
         }
     }
 
+    // Abstract function that each individual level may need
     public abstract void refresh();
 
     
