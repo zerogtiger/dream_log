@@ -1,10 +1,13 @@
 import java.awt.*;
+import javax.sound.sampled.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 public class KeyInput extends KeyAdapter {
 
     public void keyPressed(KeyEvent e) {
+        if (Game.user == null)
+            return;
         if (e.getKeyCode() == KeyEvent.VK_W) {
             Game.forward = true;
             Game.backward = false;
@@ -36,6 +39,13 @@ public class KeyInput extends KeyAdapter {
                 Game.currentLevel = 0;
                 Game.player.setX(Game.user.getLastLobbyX());
                 Game.player.setY(Game.user.getLastLobbyY());
+                Game.inGameMusic.stop();
+                // Start music
+                if (Game.user.getMenuMusic()) {
+                    Game.menuMusic.setFramePosition(0);
+                    Game.menuMusic.start();
+                    Game.menuMusic.loop(Clip.LOOP_CONTINUOUSLY);
+                }
             }
         }
     }

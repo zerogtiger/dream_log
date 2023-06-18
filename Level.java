@@ -1,6 +1,7 @@
 import javax.swing.*;
-import javax.swing.text.html.HTMLDocument.HTMLReader.SpecialAction;
-
+import javax.sound.sampled.*;
+import java.awt.image.*;
+import javax.imageio.ImageIO;
 import java.util.*;
 import java.io.*;
 import java.awt.*;
@@ -19,6 +20,7 @@ public abstract class Level {
     private Map<Pair, int[]> update;
     // Used to keep track of position from which player entered the level
     protected Pair exit;
+    private BufferedImage image;
 
     private final Pair[] portalCheck = {
         new Pair(0, 1), 
@@ -27,7 +29,7 @@ public abstract class Level {
         new Pair(-1, 0)
     };
 
-    public Level(int levelNum, String gridFile, String updateFile, int shiftx, int shifty) {
+    public Level(int levelNum, String gridFile, String updateFile, String levelOverlay, int shiftx, int shifty) {
         this.levelNum = levelNum;
         update = new HashMap<>();
 
@@ -73,6 +75,9 @@ public abstract class Level {
                 }
             }
             br.close();
+
+            // Image
+            image = ImageIO.read(new File(levelOverlay));
         }
         catch (FileNotFoundException e) {
             System.out.println(e);
@@ -110,6 +115,12 @@ public abstract class Level {
             update.get(exit)[2] = y;
         }
     }
+
+    public void render(Graphics g) {
+        // g.drawImage(image, Game.SCREEN_WIDTH/2-(int) (Game.player.getX()*8), yLength*4-(int) (Game.player.getY()*8), xLength*8, -yLength*8, null);
+        g.drawImage(image, Game.SCREEN_WIDTH/2-(int) (Game.player.getX()*8), Game.SCREEN_HEIGHT/2 + yLength*8 - (int) (Game.player.getY()*8), xLength*8, -yLength*8, null);
+    }
+
 
     public void update() {
         double playerx = Game.player.getX(), playery = Game.player.getY();
@@ -154,6 +165,13 @@ public abstract class Level {
                             // Teleport player
                             Game.player.setX(playerx - (int) playerx + value[1]);
                             Game.player.setY(playery - (int) playery + value[2]);
+                            Game.menuMusic.stop();
+                            // Start music
+                            if (Game.user.getInGameMusic()) {
+                                Game.inGameMusic.setFramePosition(0);
+                                Game.inGameMusic.start();
+                                Game.inGameMusic.loop(Clip.LOOP_CONTINUOUSLY);
+                            }
                         }
                         // Continue the same level
                         else if (Game.user.getLastLevel() == value[3]) {
@@ -166,6 +184,13 @@ public abstract class Level {
                             // Teleport player
                             Game.player.setX(Game.user.getLastLevelX());
                             Game.player.setY(Game.user.getLastLevelY());
+                            Game.menuMusic.stop();
+                            // Start music
+                            if (Game.user.getInGameMusic()) {
+                                Game.inGameMusic.setFramePosition(0);
+                                Game.inGameMusic.start();
+                                Game.inGameMusic.loop(Clip.LOOP_CONTINUOUSLY);
+                            }
                         }
                     }
                     // If we're teleporting back to the lobby
@@ -183,6 +208,14 @@ public abstract class Level {
                         // Teleport back to original position
                         Game.player.setX(playerx - (int) playerx + value[1]);
                         Game.player.setY(playery - (int) playery + value[2]);
+
+                        Game.inGameMusic.stop();
+                        Game.stopEnvironmentSound();
+                        if (Game.user.getMenuMusic()) {
+                            Game.menuMusic.setFramePosition(0);
+                            Game.menuMusic.start();
+                            Game.menuMusic.loop(Clip.LOOP_CONTINUOUSLY);
+                        }
                     }
                 }
             }
@@ -200,6 +233,13 @@ public abstract class Level {
                 Game.player.setX(Game.user.getLastLevelX());
                 Game.player.setY(Game.user.getLastLevelY());
                 Game.level[Game.currentLevel].setOrigin((int) Game.player.getX(), (int) Game.player.getY());
+                Game.menuMusic.stop();
+                // Start music
+                if (Game.user.getInGameMusic()) {
+                    Game.inGameMusic.setFramePosition(0);
+                    Game.inGameMusic.start();
+                    Game.inGameMusic.loop(Clip.LOOP_CONTINUOUSLY);
+                }
             }
         }
         else if (i == 2) {

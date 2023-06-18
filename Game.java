@@ -1,5 +1,6 @@
 
-import javax.print.attribute.standard.JobMessageFromOperator;
+// Class description: Hosts the game, responsible for sound, popup menus, and keeps track of all user info
+
 import javax.sound.sampled.*;
 import javax.swing.*;
 import java.util.*;
@@ -10,6 +11,7 @@ import java.awt.event.*;
 
 public class Game extends Canvas implements Runnable {
 
+    // Variable declarations
     private static final long serialVersionUID = 1L;
     private Thread thread;
     private boolean running;
@@ -17,6 +19,7 @@ public class Game extends Canvas implements Runnable {
 
     private final JFrame frame;
     
+    // Screen variabels
     public static final int WIDTH = 1200;
     public static final int HEIGHT = WIDTH*9/16;
     public static final int SCREEN_WIDTH = 320;
@@ -27,6 +30,7 @@ public class Game extends Canvas implements Runnable {
     // Whether time should be sped up
     public static boolean warptime;
 
+    // Game mechancis
     public static Player player;
     public static User user;
     public static LinkedList<User> allUsers = new LinkedList<>();
@@ -36,6 +40,9 @@ public class Game extends Canvas implements Runnable {
     // Current level player is on. 0 for main lobby
     public static int currentLevel;
 
+    // Sounds
+    public static Clip menuMusic, inGameMusic, walkingSound, springSound, summerSound, autumeSound, winterSound, thunderSound;
+
     // Option dialogue components
     private static JPanel loginPanel, newAccountPanel, leaderboardPanel, tutorialPanel;
     private static JTextField loginField, passwordField, newAccountField, newPassword1Field, newPassword2Field;
@@ -44,6 +51,10 @@ public class Game extends Canvas implements Runnable {
     private static JTable leaderboard; 
     private static Object[] header, ranking[];
 
+    // Constructor
+    // Descripton: initializes game variables
+    // Parameters: none
+    // Return: none
     public Game() {
 
         warptime = false;
@@ -79,7 +90,6 @@ public class Game extends Canvas implements Runnable {
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
-        start();
 
         // Option dialogue related initializationz
         loginField = new JTextField(15);
@@ -92,6 +102,67 @@ public class Game extends Canvas implements Runnable {
         loginLabel.setVisible(false);
         newAccountLabel = new JLabel("test2");
         newAccountLabel.setVisible(false);
+
+        // Load in sounds
+        try {
+            //Menu background music
+            AudioInputStream sound = AudioSystem.getAudioInputStream(new File("level_data/soundtrack/menuMusic.wav"));
+            menuMusic = AudioSystem.getClip();
+            menuMusic.open(sound);
+            menuMusic.loop(Clip.LOOP_CONTINUOUSLY);
+            menuMusic.stop();
+
+            sound = AudioSystem.getAudioInputStream(new File("level_data/soundtrack/inGameMusic.wav"));
+            inGameMusic = AudioSystem.getClip();
+            inGameMusic.open(sound);
+            inGameMusic.loop(Clip.LOOP_CONTINUOUSLY);
+            inGameMusic.stop();
+
+            sound = AudioSystem.getAudioInputStream(new File("level_data/soundtrack/walking.wav"));
+            walkingSound = AudioSystem.getClip();
+            walkingSound.open(sound);
+            walkingSound.loop(Clip.LOOP_CONTINUOUSLY);
+            walkingSound.stop();
+
+            sound = AudioSystem.getAudioInputStream(new File("level_data/soundtrack/spring.wav"));
+            springSound = AudioSystem.getClip();
+            springSound.open(sound);
+            springSound.loop(Clip.LOOP_CONTINUOUSLY);
+            springSound.stop();
+
+            sound = AudioSystem.getAudioInputStream(new File("level_data/soundtrack/summer.wav"));
+            summerSound = AudioSystem.getClip();
+            summerSound.open(sound);
+            summerSound.loop(Clip.LOOP_CONTINUOUSLY);
+            summerSound.stop();
+
+            sound = AudioSystem.getAudioInputStream(new File("level_data/soundtrack/autume.wav"));
+            autumeSound = AudioSystem.getClip();
+            autumeSound.open(sound);
+            autumeSound.loop(Clip.LOOP_CONTINUOUSLY);
+            autumeSound.stop();
+            
+            sound = AudioSystem.getAudioInputStream(new File("level_data/soundtrack/winter.wav"));
+            winterSound = AudioSystem.getClip();
+            winterSound.open(sound);
+            winterSound.loop(Clip.LOOP_CONTINUOUSLY);
+            winterSound.stop();
+            
+            sound = AudioSystem.getAudioInputStream(new File("level_data/soundtrack/thunder.wav"));
+            thunderSound = AudioSystem.getClip();
+            thunderSound.open(sound);
+            thunderSound.loop(Clip.LOOP_CONTINUOUSLY);
+            thunderSound.stop();
+        } 
+        catch (UnsupportedAudioFileException e) {
+            System.out.println(e);
+        }
+        catch (LineUnavailableException e) {
+            System.out.println(e);
+        }
+        catch (IOException e) {
+            System.out.println(e);
+        }
         
         // Log in panel
         loginPanel = new JPanel(new GridBagLayout());
@@ -118,6 +189,7 @@ public class Game extends Canvas implements Runnable {
         c.gridx = 1;
         loginPanel.add(loginLabel, c);
 
+        // New account panel
         newAccountPanel = new JPanel(new GridBagLayout());
         c.weightx = 1.0;
         c.weighty = 1.0;
@@ -149,6 +221,7 @@ public class Game extends Canvas implements Runnable {
         c.gridy = 3;
         newAccountPanel.add(newAccountLabel, c);
 
+        // Tutorial and instructions page
         tutorialTopLabel = new JLabel("<HTML> This is your dream <br> &emsp &emsp --a log of your dream <br> &emsp &emsp &emsp &emsp __a dream_log</HTML>");
         tutorialTopLabel.setFont(new Font("consolas", Font.PLAIN, 18));
         tutorialTopRightLabel = new JLabel("A Game by zerogtiger (aka. Tiger Ding) for ICS4U");
@@ -216,6 +289,7 @@ public class Game extends Canvas implements Runnable {
             {"20", "-------", "-----"}
         };
 
+        // Leaderboard
         leaderboard = new JTable();
         leaderboard = new JTable(ranking, header) {
             public boolean isCellEditable(int row, int column) {
@@ -242,11 +316,17 @@ public class Game extends Canvas implements Runnable {
         leaderboardPanel.add(leaderboardLabel, BorderLayout.NORTH);
         leaderboardPanel.add(new JScrollPane(leaderboard), BorderLayout.CENTER);
 
+        start();
+
         retriveAllUserInfo();
 
         getUserInfo();
+
     }
 
+    // Descripton: Retreives all stored user info
+    // Parameters: none
+    // Return: none
     private void retriveAllUserInfo() {
         try {
             BufferedReader br = new BufferedReader(new FileReader("user_data/login_info.txt"));
@@ -270,8 +350,22 @@ public class Game extends Canvas implements Runnable {
             System.out.println(e);
         }
     }
+    
 
+    // Descripton: Stops all environment sounds
+    // Parameters: none
+    // Return: none
+    public static void stopEnvironmentSound() {
+        springSound.stop();
+        summerSound.stop();
+        autumeSound.stop();
+        winterSound.stop();
+        thunderSound.stop();
+    }
 
+    // Descripton: Gets info from current user
+    // Parameters: none
+    // Return: none
     private void getUserInfo() {
         int result;
         // While the current user has not been detectedx
@@ -364,6 +458,9 @@ public class Game extends Canvas implements Runnable {
         player.setFacing(user.getLastFacing());
     }
 
+    // Descripton: shows the leaderboard popup menu
+    // Parameters: none
+    // Return: none
     public static void showLeaderboard() {
         int counter = 0;
         for (User u : completedUsers) {
@@ -374,6 +471,9 @@ public class Game extends Canvas implements Runnable {
         JOptionPane.showOptionDialog(null, leaderboardPanel, "lea_de_rboar__d", JOptionPane.YES_OPTION, JOptionPane.PLAIN_MESSAGE, null, new Object[]{"Close"}, null);
     }
 
+    // Descripton: Converts serconds to time in form of (hh:mm:ss)
+    // Parameters: number of secomds
+    // Return: formatted string displaying time in the form (hh:mm:ss)
     public static String secondsToTime(Long timeElapsedSeconds) {
         long hour = timeElapsedSeconds/3600;
         int minute = (int) (timeElapsedSeconds%3600/60);
@@ -381,6 +481,9 @@ public class Game extends Canvas implements Runnable {
         return String.format("%02d:%02d:%02d", hour, minute, second);
     }
 
+    // Descripton: records all info of current user in a file before shutdown
+    // Parameters: none
+    // Return: none
     public static void recordUserInfo() {
         // User account record sequence
         try {
@@ -407,11 +510,18 @@ public class Game extends Canvas implements Runnable {
             System.out.println(e);
         }
     }
+
+    // Descripton: Starts the thread
+    // Parameters: none
+    // Return: none
     private synchronized void start() {
         running = true;
         thread.start();
     }
 
+    // Descripton: stops the thread
+    // Parameters: none
+    // Return: none
     public synchronized void stop() {
         running = false;
         try {
@@ -421,6 +531,9 @@ public class Game extends Canvas implements Runnable {
         }
     }
 
+    // Descripton: renders the stuff to the screen
+    // Parameters: none
+    // Return: none
     public void render() {
         BufferStrategy bs = this.getBufferStrategy();
         if(bs == null) {
@@ -435,6 +548,9 @@ public class Game extends Canvas implements Runnable {
         gi.fillRect(0, 0, 1, 1);
         gi.setColor(Color.RED);
         gi.fillRect(SCREEN_WIDTH-1, SCREEN_HEIGHT-1, 1, 1);
+        // render level
+        level[currentLevel].render(gi);
+        // render player
         player.render(gi);
 
         // Draw the image such that 0, 0 is at the bottom left corner. Makes handling rotation easier
@@ -450,6 +566,9 @@ public class Game extends Canvas implements Runnable {
         bs.show();
     }
 
+    // Descripton: Main game loop
+    // Parameters: none
+    // Return: none
     public void run() {
         long lastTime = System.nanoTime();
         final double ns = 1000000000.0 / 60.0;//60 times per second
@@ -468,6 +587,13 @@ public class Game extends Canvas implements Runnable {
                 player.update();
                 if (user != null) {
                     user.update();
+                    if (user.getMenuMusic() && currentLevel == 0 && !menuMusic.isActive()) {
+                        menuMusic.setFramePosition(0);
+                        menuMusic.start();
+                        menuMusic.loop(Clip.LOOP_CONTINUOUSLY);
+                    }
+                    else if (!user.getMenuMusic()) 
+                        menuMusic.stop();
                 }
                 delta--;
             }

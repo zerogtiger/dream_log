@@ -1,3 +1,6 @@
+// class description: records all user account info, such as their last positions, time elapsed,
+// and settings
+
 import java.util.*;
 import java.io.*;
 import java.math.BigInteger;
@@ -19,8 +22,12 @@ public class User implements Comparable<User> {
     // Last toggled setting state
     private boolean menuMusic, inGameMusic, environmentSounds;
 
+    // Counts number of game ticks for timer
     private int counter = 0;
 
+    // Descripton: initializes with existing account
+    // Parameters: user name, password (sha-256 hashed), and dedicated file storing other info
+    // Return: none
     public User(String name, String password, String fileName) {
         this.name = name;
         this.password = password;
@@ -60,6 +67,9 @@ public class User implements Comparable<User> {
         }
     }
 
+    // Descripton: initializes new account
+    // Parameters: user name, password (sha-256 hashed)
+    // Return: none
     public User(String name, String password) {
         this.name = name;
         this.password = password;
@@ -74,6 +84,9 @@ public class User implements Comparable<User> {
         environmentSounds = true;
     }
 
+    // Description: updates the timer for the user
+    // Parameters: none
+    // Return: none
     public void update() {
         if (levelsCleared.size() == 4)
             return;
@@ -83,16 +96,17 @@ public class User implements Comparable<User> {
             counter=0;
         }
     }
+
+    // Description: compareto function implementing the comparable interface
+    // Parameters: user to be compared to
+    // Return: string comparson by name
     public int compareTo(User u) {
         return name.compareToIgnoreCase(u.name);
     }
 
-    public String getName() {
-        return name;
-    }
-    public String getPassword() {
-        return password;
-    }
+    // Description: hashes the string with sha-256
+    // Parameters: the string to be hashed
+    // Return: the hashed string
     public static String sha256hash(String password) { 
         try{
             // Hash with SHA-256
@@ -185,5 +199,12 @@ public class User implements Comparable<User> {
 
     public boolean getEnvironmentSounds() {
         return environmentSounds;
+    }
+
+    public String getName() {
+        return name;
+    }
+    public String getPassword() {
+        return password;
     }
 }

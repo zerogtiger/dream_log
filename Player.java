@@ -1,41 +1,7 @@
 
-/* // Top teleportation window
-13 25 level 1
-39 25 level 1
-65 25 level 1
-91 25 level 5
-117 25 level 5
-143 25 level 5
-169 25 level 5
-195 25 level 1
-// Right teleportation window
-25 13 level 2
-51 13 level 2
-77 13 A
-103 13 A
-129 13 A
-155 13 A
-181 13 level 2
-207 13 level 2
-// Bottom window
-13 1 level 3
-39 1 B
-65 1 B
-91 1 B
-117 1 B
-143 1 level 3
-169 1 level 3
-195 1 level 3
-// Left window
-1 13 C
-27 13 C
-53 13 C
-79 13 C
-105 13 level 4
-131 13 level 4
-157 13 level 4
-183 13 level 4 */
+// Class description: records player info
 import javax.swing.*;
+import javax.sound.sampled.*;
 import java.util.*;
 import java.io.*;
 import java.awt.*;
@@ -140,6 +106,14 @@ public class Player {
         blockRight = (Game.level[Game.currentLevel].getGrid((int) x+1, (int) (y-0.25)) > 0 && (x - (int) x >= 0.75)) || (Game.level[Game.currentLevel].getGrid((int) x+1, (int) (y+0.125)) > 0 && (x - (int) x >= 0.75));
         blockFront = (Game.level[Game.currentLevel].getGrid((int) (x-0.25), (int) y+1) > 0 && (y - (int) y >= 0.75)) || (Game.level[Game.currentLevel].getGrid((int) (x+0.125), (int) y+1) > 0 && (y - (int) y >= 0.75));
         blockBack = (Game.level[Game.currentLevel].getGrid((int) (x-0.25), (int) y-1) > 0 && (y - (int) y <= 0.25)) || (Game.level[Game.currentLevel].getGrid((int) (x+0.125), (int) y-1) > 0 && (y - (int) y <= 0.25));
+
+        if (Game.user != null && Game.user.getEnvironmentSounds() && (Game.forward || Game.backward || Game.left || Game.right || Game.turnLeft || Game.turnRight)) {
+            Game.walkingSound.start();
+            Game.walkingSound.loop(Clip.LOOP_CONTINUOUSLY);
+        }
+        else {
+            Game.walkingSound.stop();
+        }
 
         // Perform the needed actions if requested
         if (Game.forward) {
@@ -336,7 +310,7 @@ public class Player {
         // Set to the special color for the mask
         g.setColor(new Color(1, 1, 1));
         // Draw the polygon defining the shadow cast by player
-        g.drawPolygon(new int[]{Game.SCREEN_WIDTH/2, endpoints[0][0], 
+        g.fillPolygon(new int[]{Game.SCREEN_WIDTH/2, endpoints[0][0], 
                                 FILL_COORDINATES[FILL_ORDER[dirIndex][0]][0],
                                 FILL_COORDINATES[FILL_ORDER[dirIndex][1]][0],
                                 FILL_COORDINATES[FILL_ORDER[dirIndex][2]][0],
@@ -440,7 +414,7 @@ public class Player {
                         (int) (-y*8) + Game.SCREEN_HEIGHT/2 + (cellY + vertexDelta[(v+1)%4][1])*8
                     };
                 }
-                g.drawPolygon(xPoints, yPoints, xPoints.length);
+                g.fillPolygon(xPoints, yPoints, xPoints.length);
             }
         }
     }
@@ -534,44 +508,8 @@ public class Player {
                         (int) (-y*8) + Game.SCREEN_HEIGHT/2 + (cellY + vertexDelta[(v+1)%4][1])*8
                     };
                 }
-                g.drawPolygon(xPoints, yPoints, xPoints.length);
+                g.fillPolygon(xPoints, yPoints, xPoints.length);
             }
-            // for (int v = 0; v < 4; v++) {
-            //     if (endpoints[v%4][0] == endpoints[(v+1)%4][0] || endpoints[v%4][1] == endpoints[(v+1)%4][1]) {
-            //         g.drawPolygon(
-            //             new int[]{
-            //                 (int) (Game.SCREEN_WIDTH + (-x*8) + (cellX + vertexDelta[v][0])*8),
-            //                 (int) (Game.SCREEN_WIDTH + endpoints[v][0]),
-            //                 (int) (Game.SCREEN_WIDTH + endpoints[(v+1)%4][0]),
-            //                 (int) (Game.SCREEN_WIDTH + (-x*8) + (cellX + vertexDelta[(v+1)%4][0])*8)
-            //             }, 
-            //             new int[]{
-            //                 (int) (Game.SCREEN_HEIGHT + (-y*8) + (cellY + vertexDelta[v][1])*8),
-            //                 (int) (Game.SCREEN_HEIGHT + endpoints[v][1]),
-            //                 (int) (Game.SCREEN_HEIGHT + endpoints[(v+1)%4][1]),
-            //                 (int) (Game.SCREEN_HEIGHT + (-y*8) + (cellY + vertexDelta[(v+1)%4][1])*8)
-            //             },
-            //         4);
-            //     }
-            //     else {
-            //         g.drawPolygon(
-            //             new int[]{
-            //                 (int) (Game.SCREEN_WIDTH + (-x*8) + (cellX + vertexDelta[v][0])*8),
-            //                 (int) (Game.SCREEN_WIDTH + endpoints[v][0]),
-            //                 (int) (Game.SCREEN_WIDTH + (xEdgeValues.contains(endpoints[v][0])? endpoints[v][0] : endpoints[(v+1)%4][0])),
-            //                 (int) (Game.SCREEN_WIDTH + endpoints[(v+1)%4][0]),
-            //                 (int) (Game.SCREEN_WIDTH + (-x*8) + (cellX + vertexDelta[(v+1)%4][0])*8)
-            //             }, 
-            //             new int[]{
-            //                 (int) (Game.SCREEN_HEIGHT + (-y*8) + (cellY + vertexDelta[v][1])*8),
-            //                 (int) (Game.SCREEN_HEIGHT + endpoints[v][1]),
-            //                 (int) (Game.SCREEN_HEIGHT + (yEdgeValues.contains(endpoints[v][1])? endpoints[v][1] : endpoints[(v+1)%4][1])),
-            //                 (int) (Game.SCREEN_HEIGHT + endpoints[(v+1)%4][1]),
-            //                 (int) (Game.SCREEN_HEIGHT + (-y*8) + (cellY + vertexDelta[(v+1)%4][1])*8)
-            //             },
-            //         5);
-            //     }
-            // }
         }
     }
 
